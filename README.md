@@ -13,10 +13,13 @@
    - `npm install @ruhis/rql`
    - `yarn add @ruhis/rql`
 2. Import `QueryParser` and `QueryExecutor` to your code:
+
    ```js
    import { QueryParser, QueryExecutor } from "@ruhis/rql";
    ```
+
 3. Parse query and execute it against a dataset:
+
    ```js
    const query =
      'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email | sort age desc | limit 10';
