@@ -5,3 +5,4 @@ babel.config.js
 jest.config.mjs
 test/
 tsconfig.json
+docs/
