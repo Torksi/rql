@@ -6,6 +6,20 @@ import {
 } from "./types";
 
 export class QueryParser {
+  /**
+   * Parses the provided query string into a Query object.
+   *
+   * Example query string:
+   * `dataset = myDataset | filter price > 100 | sort price desc, name asc | fields name, price as cost, description | limit 10`
+   *
+   * The returned Query object has properties matching the parsed elements of the query string. If any part of the query string cannot be parsed correctly, an error will be thrown.
+   *
+   * @param {string} queryString The query string to be parsed.
+   * @returns {Query} The parsed query as a Query object.
+   * @throws {Error} If any part of the query string cannot be parsed, or if no dataset is specified.
+   * @public
+   * @static
+   */
   public static parseQuery(queryString: string): Query {
     const query: Query = {
       dataset: "",

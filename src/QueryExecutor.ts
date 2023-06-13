@@ -2,75 +2,20 @@ import dynamicSort from "./dynamicSort";
 import { Query, QueryAlter } from "./types";
 
 export class QueryExecutor {
-  private static executeAlter(alter: QueryAlter, data: any[]) {
-    try {
-      if (alter.func === "lowercase") {
-        data.map((row) => {
-          row[alter.field] = row[alter.parameters[0]].toLowerCase();
-        });
-      } else if (alter.func === "uppercase") {
-        data.map((row) => {
-          row[alter.field] = row[alter.parameters[0]].toUpperCase();
-        });
-      } else if (alter.func === "substring") {
-        data.map((row) => {
-          row[alter.field] = row[alter.parameters[0]].substring(
-            Number(alter.parameters[1]),
-            Number(alter.parameters[2])
-          );
-        });
-      } else if (alter.func === "multiply") {
-        if (!isNaN(Number(alter.parameters[1]))) {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] * Number(alter.parameters[1]);
-          });
-        } else {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] * Number(row[alter.parameters[1]]);
-          });
-        }
-      } else if (alter.func === "add") {
-        if (!isNaN(Number(alter.parameters[1]))) {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] + Number(alter.parameters[1]);
-          });
-        } else {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] + Number(row[alter.parameters[1]]);
-          });
-        }
-      } else if (alter.func === "subtract") {
-        if (!isNaN(Number(alter.parameters[1]))) {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] - Number(alter.parameters[1]);
-          });
-        } else {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] - Number(row[alter.parameters[1]]);
-          });
-        }
-      } else {
-        throw new Error(
-          `Invalid alter statement: '${
-            alter.func
-          }' with parameters '${alter.parameters.join(", ")}'`
-        );
-      }
-    } catch (e) {
-      throw new Error(
-        `Invalid alter statement: '${
-          alter.func
-        }' with parameters '${alter.parameters.join(", ")}'`
-      );
-    }
-  }
-
+  /**
+   * Executes the provided query on the given data array.
+   *
+   * The data array consists of objects with key-value pairs representing the data.
+   *
+   * If any field or operator is not found in a row of data, an error will be thrown.
+   *
+   * @param {Query} query The query object containing fields, alters, filters, sort, and limit properties.
+   * @param {Array} data The data to be queried, as an array of objects.
+   * @returns {Array} The result of the query execution, as an array of objects.
+   * @throws {Error} If any field in the query is not found in the data, or an invalid operator is used.
+   * @public
+   * @static
+   */
   public static executeQuery(query: Query, data: any[]): any[] {
     let results = data;
 
@@ -176,5 +121,74 @@ export class QueryExecutor {
     }
 
     return results;
+  }
+
+  private static executeAlter(alter: QueryAlter, data: any[]) {
+    try {
+      if (alter.func === "lowercase") {
+        data.map((row) => {
+          row[alter.field] = row[alter.parameters[0]].toLowerCase();
+        });
+      } else if (alter.func === "uppercase") {
+        data.map((row) => {
+          row[alter.field] = row[alter.parameters[0]].toUpperCase();
+        });
+      } else if (alter.func === "substring") {
+        data.map((row) => {
+          row[alter.field] = row[alter.parameters[0]].substring(
+            Number(alter.parameters[1]),
+            Number(alter.parameters[2])
+          );
+        });
+      } else if (alter.func === "multiply") {
+        if (!isNaN(Number(alter.parameters[1]))) {
+          data.map((row) => {
+            row[alter.field] =
+              row[alter.parameters[0]] * Number(alter.parameters[1]);
+          });
+        } else {
+          data.map((row) => {
+            row[alter.field] =
+              row[alter.parameters[0]] * Number(row[alter.parameters[1]]);
+          });
+        }
+      } else if (alter.func === "add") {
+        if (!isNaN(Number(alter.parameters[1]))) {
+          data.map((row) => {
+            row[alter.field] =
+              row[alter.parameters[0]] + Number(alter.parameters[1]);
+          });
+        } else {
+          data.map((row) => {
+            row[alter.field] =
+              row[alter.parameters[0]] + Number(row[alter.parameters[1]]);
+          });
+        }
+      } else if (alter.func === "subtract") {
+        if (!isNaN(Number(alter.parameters[1]))) {
+          data.map((row) => {
+            row[alter.field] =
+              row[alter.parameters[0]] - Number(alter.parameters[1]);
+          });
+        } else {
+          data.map((row) => {
+            row[alter.field] =
+              row[alter.parameters[0]] - Number(row[alter.parameters[1]]);
+          });
+        }
+      } else {
+        throw new Error(
+          `Invalid alter statement: '${
+            alter.func
+          }' with parameters '${alter.parameters.join(", ")}'`
+        );
+      }
+    } catch (e) {
+      throw new Error(
+        `Invalid alter statement: '${
+          alter.func
+        }' with parameters '${alter.parameters.join(", ")}'`
+      );
+    }
   }
 }

@@ -104,7 +104,8 @@ The `alter` statement is used to create or overwrite fields in the dataset using
 ```
 dataset = products
 | filter ean = "6410405082657"
-| fields ean, age, email, loginIp as ip
+| alter price = multiply(cost, 1.2)
+| fields ean, name, cost
 ```
 
 ## filter
@@ -167,6 +168,8 @@ dataset = logins
 
 # Roadmap
 
+- [ ] Better test coverage
+- [ ] Commenting & cleaning up code
 - [ ] Support for `<=` and `>=` operators
 - [ ] Support for `in` and `not in` operators
 - [ ] More functions for `alter` statement
