@@ -1,0 +1,29 @@
+{
+  "name": "rql",
+  "author": "Toni Ruhanen (https://ruhis.fi)",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "tsc && rollup -c"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.5.2",
+    "@typescript-eslint/eslint-plugin": "^5.59.11",
+    "@typescript-eslint/parser": "^5.59.11",
+    "eslint": "^8.42.0",
+    "jest": "^29.5.0",
+    "rollup": "^3.25.1",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3"
+  }
+}
