@@ -1,7 +1,7 @@
 {
   "name": "@ruhisfi/rql",
   "author": "Toni Ruhanen (https://ruhis.fi)",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
