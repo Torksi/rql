@@ -22,7 +22,7 @@
 
    ```js
    const query =
-     'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email | sort age desc | limit 10';
+     'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email, age | sort age desc | limit 10';
    const parsedQuery = QueryParser.parseQuery(query); // This will convert the query string into JS object
    const result = QueryExecutor.executeQuery(parsedQuery, dataset); // This will execute the query against the dataset
    ```
