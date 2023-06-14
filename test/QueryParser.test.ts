@@ -38,6 +38,12 @@ describe("Test query validation", () => {
     const query = "filter amount > 1000 or dueDate < date()";
     expect(() => QueryParser.parseQuery(query)).toThrow("No dataset specified");
   });
+  test("It should fail with invalid dataset", () => {
+    const query = "dataset";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid dataset statement: 'dataset'"
+    );
+  });
 });
 
 describe("Test 'limit' statement", () => {

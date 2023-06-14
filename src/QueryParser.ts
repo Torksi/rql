@@ -34,6 +34,9 @@ export class QueryParser {
     for (const part of queryParts) {
       const statement = part.trim();
       if (statement.startsWith("dataset")) {
+        if (statement.split("=").length !== 2) {
+          throw new Error(`Invalid dataset statement: '${statement}'`);
+        }
         query.dataset = statement.split("=")[1].trim();
       } else if (statement.startsWith("filter")) {
         const filter = statement.substring(6).trim();
