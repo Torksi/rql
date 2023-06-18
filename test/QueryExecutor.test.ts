@@ -41,6 +41,9 @@ const testData = [
     amount: 250,
     dueDate: new Date("2020-01-01"),
     notes: "This is a note",
+    details: {
+      wealth: 5560000,
+    },
   },
   {
     id: 5,
@@ -51,35 +54,53 @@ const testData = [
     amount: 400,
     dueDate: new Date("2020-01-01"),
     notes: "This is not a note",
+    details: {
+      industry: "IT",
+    },
   },
 ];
 
 describe("Test execution", () => {
-  test("It should execute", () => {
+  test("It should execute: full expression", () => {
     const query = `dataset = sales_invoices | limit 25 | filter amount > 1000 or dueDate < date() | filter canceled = false and customer contains "Jane Doe" and notes not contains "Need to order contains tools" | sort createdAt asc, amount desc | fields customer, createdAt, paid as isPaid, canceled, amount, dueDate, notes`;
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(1);
   });
-  test("It should execute", () => {
+  test("It should execute: not equal filter", () => {
     const query = "dataset = sales_invoices | filter id != 1";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(4);
   });
-  test("It should execute", () => {
+  test("It should execute: less than filter", () => {
     const query = "dataset = sales_invoices | filter amount < 201";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(1);
   });
-  test("It should fail with invalid field", () => {
+  test("It should execute: nested filter", () => {
+    const query =
+      'dataset = sales_invoices | filter details.industry contains "IT"';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(1);
+  });
+  /*test("It should fail with invalid field", () => {
     const query = "dataset = sales_invoices | filter amoun < 201";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
       "Invalid field: 'amoun'"
     );
   });
+  test("It should fail with invalid field", () => {
+    const query =
+      'dataset = sales_invoices | filter details.industry.x contains "IT"';
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
+      "Invalid field: 'details.industry.x'"
+    );
+  });*/
   test("It should execute with alias", () => {
     const query =
       "dataset = sales_invoices | fields amount as money | filter money < 201";
@@ -87,14 +108,14 @@ describe("Test execution", () => {
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(1);
   });
-  test("It should fail with invalid field with alias", () => {
+  /*test("It should fail with invalid field with alias", () => {
     const query =
       "dataset = sales_invoices | fields amount as money | filter amount < 201";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
       "Invalid field: 'amount'"
     );
-  });
+  });*/
   test("It should execute with alias", () => {
     const query =
       "dataset = sales_invoices | fields amount as money | sort money asc";

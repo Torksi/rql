@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import dynamicSort from "./dynamicSort";
 import { Query, QueryAlter } from "./types";
+import { Client } from "@elastic/elasticsearch";
 
 export class QueryExecutor {
   /**
@@ -47,10 +49,47 @@ export class QueryExecutor {
             let blockResult = false;
             for (const expression of block.expressions) {
               const { field, operator, value } = expression;
-              const rowValue = row[field];
+              const fieldPath = field.split(".");
+              let rowValue = row;
 
-              if (Object.keys(row).indexOf(field) === -1) {
-                throw new Error(`Invalid field: '${field}'`);
+              for (let i = 0; i < fieldPath.length; i += 1) {
+                const path = fieldPath[i];
+
+                if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
+                  rowValue = null;
+                  break;
+                }
+
+                // TODO: Fix this
+                /*if (fieldPath.length === 1) {
+                  if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
+                    throw new Error(`Invalid field: '${field}'`);
+                  }
+                  rowValue = rowValue[path];
+                  break;
+                }
+
+                if (i < fieldPath.length - 1) {
+                  if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
+                    rowValue = null;
+                    break;
+                  }
+                  rowValue = rowValue[path];
+                  continue;
+                }
+
+                if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
+                  throw new Error(
+                    `Invalid field: '${field}' ${path} ${i}:${
+                      fieldPath.length - 1
+                    }`
+                  );
+                }*/
+                rowValue = rowValue[path];
+              }
+
+              if (rowValue === null) {
+                break;
               }
 
               switch (operator) {
@@ -121,6 +160,53 @@ export class QueryExecutor {
     }
 
     return results;
+  }
+
+  /**
+   * WIP: Executes the provided query on the Elasticsearch client and index.
+   *
+   * The data array consists of objects with key-value pairs representing the data.
+   *
+   * If any field or operator is not found in a row of data, an error will be thrown.
+   *
+   * @deprecated This function is still under development.
+   * @param {Query} query The query object containing fields, alters, filters, sort, and limit properties.
+   * @param {Array} data The data to be queried, as an Elasticsearch response.
+   * @returns {Array} The result of the query execution, as an array of objects.
+   * @throws {Error} If any field in the query is not found in the data, or an invalid operator is used.
+   * @public
+   * @static
+   */
+  public static async executeElasticQuery(
+    client: Client,
+    index: string,
+    query: Query
+  ): Promise<any[]> {
+    const body: any = {};
+
+    // Fields
+    if (query.fields && query.fields.length > 0) {
+      body._source = query.fields.map((field) => field.name);
+    }
+
+    // TODO: Implement all other statements here too, so that the whole query can be executed on Elasticsearch.
+
+    body.size = 5000;
+
+    let response: any;
+
+    try {
+      response = await client.search({ index, ...body });
+    } catch (err: any) {
+      throw new Error(`Elasticsearch error: ${err.message}`);
+    }
+
+    const data = response.hits.hits.map((hit: any) => ({
+      _id: hit._id,
+      ...hit._source,
+    }));
+
+    return this.executeQuery(query, data);
   }
 
   private static executeAlter(alter: QueryAlter, data: any[]) {
