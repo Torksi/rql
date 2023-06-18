@@ -94,7 +94,9 @@ export class QueryExecutor {
 
               switch (operator) {
                 case "equals":
-                  blockResult = rowValue === value;
+                  blockResult =
+                    rowValue === value ||
+                    rowValue.toString() === value.toString();
                   break;
                 case "notEquals":
                   blockResult = rowValue !== value;

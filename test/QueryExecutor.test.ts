@@ -21,6 +21,7 @@ const testData = [
     amount: 200,
     dueDate: new Date("2023-12-12"),
     notes: "This is a note",
+    uniqueNumber: 727411466252,
   },
   {
     id: 3,
@@ -31,6 +32,7 @@ const testData = [
     amount: 300,
     dueDate: new Date("2020-01-01"),
     notes: "",
+    uniqueNumber: "727411466252",
   },
   {
     id: 4,
@@ -85,6 +87,13 @@ describe("Test execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(1);
+  });
+  test("It should execute: number equals filter", () => {
+    const query =
+      "dataset = sales_invoices | filter uniqueNumber = 727411466252";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
   });
   /*test("It should fail with invalid field", () => {
     const query = "dataset = sales_invoices | filter amoun < 201";
