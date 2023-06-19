@@ -99,13 +99,19 @@ export class QueryExecutor {
                     rowValue.toString() === value.toString();
                   break;
                 case "notEquals":
-                  blockResult = rowValue !== value;
+                  blockResult =
+                    rowValue !== value ||
+                    rowValue.toString() !== value.toString();
                   break;
                 case "contains":
-                  blockResult = rowValue.includes(value);
+                  blockResult =
+                    rowValue.includes(value) ||
+                    rowValue.toString().includes(value.toString());
                   break;
                 case "notContains":
-                  blockResult = !rowValue.includes(value);
+                  blockResult =
+                    !rowValue.includes(value) ||
+                    !rowValue.toString().includes(value.toString());
                   break;
                 case "lessThan":
                   blockResult = rowValue < value;
