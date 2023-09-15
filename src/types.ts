@@ -11,6 +11,7 @@ export interface QueryFilterExpression {
   operator:
     | "equals"
     | "notEquals"
+    | "matches"
     | "contains"
     | "notContains"
     | "lessThan"

@@ -50,6 +50,7 @@ The following operators are supported in RQL:
 | or           | Boolean OR                                            |
 | contains     | Returns true if the specified string is contained     |
 | not contains | Returns true if the specified string is not contained |
+| matches      | Returns true if the regex pattern matches             |
 
 # Statements
 

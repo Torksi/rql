@@ -95,6 +95,20 @@ describe("Test execution", () => {
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(2);
   });
+  test("It should execute: matches filter", () => {
+    const query =
+      "dataset = sales_invoices | filter customer matches ^\\w+\\s+D\\w*s";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+  /*test("It should fail with invalid regex format", () => {
+    const query =
+      "dataset = sales_invoices | filter customer matches ^\\w+\\s+D\\w(*";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid regex pattern"
+    );
+  });*/
   /*test("It should fail with invalid field", () => {
     const query = "dataset = sales_invoices | filter amoun < 201";
     const parsedQuery = QueryParser.parseQuery(query);

@@ -131,11 +131,19 @@ export class QueryParser {
   private static parseFilterExpression(
     expression: string
   ): QueryFilterExpression {
-    const operators = ["=", "!=", "contains", "not contains", "<", ">"];
+    const operators = [
+      "=",
+      "!=",
+      "matches",
+      "contains",
+      "not contains",
+      "<",
+      ">",
+    ];
 
     // The operator capturing group now treats "not contains" as a single operator
     const match = expression.match(
-      /("[^"]+"|\S+)\s*(=|!=|contains|"not contains"|<|>)\s*("[^"]+"|\S+)/i
+      /("[^"]+"|\S+)\s*(=|!=|contains|matches|"not contains"|<|>)\s*("[^"]+"|\S+)/i
     );
     if (!match) {
       throw new Error(`Invalid filter expression: '${expression}'`);
@@ -164,6 +172,12 @@ export class QueryParser {
         return {
           field,
           operator: "notEquals",
+          value: this.parseFilterValue(value),
+        };
+      case "matches":
+        return {
+          field,
+          operator: "matches",
           value: this.parseFilterValue(value),
         };
       case "contains":

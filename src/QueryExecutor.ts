@@ -119,6 +119,14 @@ export class QueryExecutor {
                 case "greaterThan":
                   blockResult = rowValue > value;
                   break;
+                case "matches":
+                  try {
+                    const regex = new RegExp(value.toString());
+                    blockResult = regex.test(rowValue.toString());
+                  } catch (e) {
+                    throw new Error(`Invalid regex pattern: '${value}'`);
+                  }
+                  break;
                 default:
                   throw new Error(`Invalid operator: '${operator}'`);
               }
@@ -214,7 +222,7 @@ export class QueryExecutor {
       ...hit._source,
     }));
 
-    return this.executeQuery(query, data);
+    return this.executeQuery(query, data); // Once we have all statements implemented, we can remove this line as the result should already be parsed.
   }
 
   private static executeAlter(alter: QueryAlter, data: any[]) {
