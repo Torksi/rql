@@ -5,7 +5,7 @@
 ## Key Features
 
 - **Simple and intuitive syntax** - RQL is designed to be easy to learn and use. The syntax is similar to [KQL](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) or [XQL](https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-XQL-Language-Reference/Get-Started-with-XQL), but with a few key differences that make it more intuitive and powerful.
-- **Light, type-safe, and dependency-free** - RQL is written in TypeScript and compiled to JavaScript. It has no dependencies and is very lightweight, making it easy to integrate into any project.
+- **Light, type-safe and developer friendly** - RQL is written in TypeScript and compiled to JavaScript. It is very lightweight and has a great documentation, making it easy to integrate into any project.
 
 ## Quick Start Guide
 
@@ -42,16 +42,18 @@ The query consists of multiple statements separated by the pipe (`|`) character.
 
 The following operators are supported in RQL:
 
-| Operator     | Description                                           |
-| ------------ | ----------------------------------------------------- |
-| =, !=        | Equal, Not equal                                      |
-| >, <         | Greater than, Less than                               |
-| >=, <=       | Greater than or equal, Less than or equal             |
-| and          | Boolean AND                                           |
-| or           | Boolean OR                                            |
-| contains     | Returns true if the specified string is contained     |
-| not contains | Returns true if the specified string is not contained |
-| matches      | Returns true if the regex pattern matches             |
+| Operator     | Description                                             |
+| ------------ | ------------------------------------------------------- |
+| =, !=        | Equal, Not equal                                        |
+| >, <         | Greater than, Less than                                 |
+| >=, <=       | Greater than or equal, Less than or equal               |
+| and          | Boolean AND                                             |
+| or           | Boolean OR                                              |
+| contains     | Returns true if the specified string is contained       |
+| not contains | Returns true if the specified string is not contained   |
+| matches, ~=  | Returns true if the regex pattern matches               |
+| incidr       | Returns true if the IP address is in the CIDR range     |
+| not incidr   | Returns true if the IP address is not in the CIDR range |
 
 # Statements
 
@@ -184,6 +186,8 @@ dataset = logins
 ## 1.3.0 (2023-11-03)
 
 - Added support for `<=` and `>=` operators
+- Added `incidr` and `not incidr` operators
+- Added alias `~=` for `matches` operator
 - Fixed bug where query couldn't contain multiple `filter` statements
 - Improved test coverage for `QueryExecutor`
 - Cleaned test code

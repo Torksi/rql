@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import dynamicSort from "./dynamicSort";
+import ipRangeCheck from "ip-range-check";
 import { Query, QueryAlter } from "./types";
 import { Client } from "@elastic/elasticsearch";
 
@@ -111,6 +112,12 @@ export class QueryExecutor {
                   } catch (e) {
                     throw new Error(`Invalid regex pattern: '${value}'`);
                   }
+                  break;
+                case "incidr":
+                  blockResult = ipRangeCheck(rowValue, value.toString());
+                  break;
+                case "notIncidr":
+                  blockResult = !ipRangeCheck(rowValue, value.toString());
                   break;
                 default:
                   // This should never happen as the validator should catch this

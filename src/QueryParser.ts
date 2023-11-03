@@ -134,6 +134,7 @@ export class QueryParser {
     const operators = [
       "=",
       "!=",
+      "~=",
       "matches",
       "contains",
       "not contains",
@@ -141,11 +142,13 @@ export class QueryParser {
       ">",
       "<=",
       ">=",
+      "incidr",
+      "not incidr",
     ];
 
     // The operator capturing group now treats "not contains" as a single operator
     const match = expression.match(
-      /("[^"]+"|\S+)\s*(=|!=|contains|matches|"not contains"|<=|>=|<|>)\s*("[^"]+"|\S+)/i
+      /("[^"]+"|\S+)\s*(=|!=|~=|contains|matches|"not contains"|incidr|"not incidr"|<=|>=|<|>)\s*("[^"]+"|\S+)/i
     );
     if (!match) {
       throw new Error(`Invalid filter expression: '${expression}'`);
@@ -177,6 +180,7 @@ export class QueryParser {
           operator: "notEquals",
           value: this.parseFilterValue(value),
         };
+      case "~=":
       case "matches":
         return {
           field,
@@ -217,6 +221,18 @@ export class QueryParser {
         return {
           field,
           operator: "greaterThanOrEquals",
+          value: this.parseFilterValue(value),
+        };
+      case "incidr":
+        return {
+          field,
+          operator: "incidr",
+          value: this.parseFilterValue(value),
+        };
+      case "not incidr":
+        return {
+          field,
+          operator: "notIncidr",
           value: this.parseFilterValue(value),
         };
       default:

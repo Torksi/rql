@@ -36,6 +36,6 @@
   "description": "",
   "dependencies": {
     "@elastic/elasticsearch": "^8.8.1",
-    "cidr-tools": "^7.0.3"
+    "ip-range-check": "^0.2.0"
   }
 }

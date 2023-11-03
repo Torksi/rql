@@ -62,6 +62,14 @@ const testData = [
   },
 ];
 
+const testData2 = [
+  { id: 1, srcIp: "10.15.2.18" },
+  { id: 2, srcIp: "192.168.1.13" },
+  { id: 3, srcIp: "192.168.1.9" },
+  { id: 4, srcIp: "0:0:0:0:0:FFFF:222.1.41.9" },
+  { id: 5, srcIp: "85.25.14.92" },
+];
+
 describe("Test execution", () => {
   test("execute full query successfully", () => {
     const query = `dataset = sales_invoices | limit 25 | filter amount > 200 | filter canceled = false and customer contains "Daniels" and notes not contains "Need to order contains tools" | sort createdAt asc, amount desc | fields customer, createdAt, paid as isPaid, canceled, amount, dueDate, notes`;
@@ -132,6 +140,36 @@ describe("Test 'filter' statement execution", () => {
     expect(result.length).toBe(3);
   });
 
+  test("filter: incidr", () => {
+    const query = "dataset = network_logs | filter srcIp incidr 192.168.1.0/24";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData2);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: not incidr", () => {
+    const query =
+      "dataset = network_logs | filter srcIp not incidr 192.168.1.0/24";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData2);
+    expect(result.length).toBe(3);
+  });
+
+  test("filter: incidr - invalid range, ipv4 to ipv6", () => {
+    const query =
+      "dataset = network_logs | filter srcIp incidr 2001:cdba::3257:9652";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData2);
+    expect(result.length).toBe(0);
+  });
+
+  test("filter: incidr - ipv6", () => {
+    const query = "dataset = network_logs | filter srcIp incidr 222.1.41.0/24";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData2);
+    expect(result.length).toBe(1);
+  });
+
   test("filter: nested field", () => {
     const query =
       'dataset = sales_invoices | filter details.industry contains "IT"';
@@ -151,6 +189,14 @@ describe("Test 'filter' statement execution", () => {
   test("filter: matches", () => {
     const query =
       "dataset = sales_invoices | filter customer matches ^\\w+\\s+D\\w*s";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: matches - ~= alias", () => {
+    const query =
+      "dataset = sales_invoices | filter customer ~= ^\\w+\\s+D\\w*s";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(2);
