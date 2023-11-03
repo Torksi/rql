@@ -34,6 +34,17 @@
   },
   "homepage": "https://github.com/Torksi/rql#readme",
   "description": "",
+  "keywords": [
+    "rql",
+    "elasticsearch",
+    "query",
+    "parser",
+    "queryparser",
+    "siem",
+    "security-analytics",
+    "data-analysis",
+    "log-analysis"
+  ],
   "dependencies": {
     "@elastic/elasticsearch": "^8.8.1",
     "ip-range-check": "^0.2.0"
