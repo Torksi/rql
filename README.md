@@ -1,11 +1,12 @@
 # RQL
 
-`RQL` (Ruhis Query Language) is a powerful library designed to simplify the process of filtering, sorting, and aggregating large amounts of data. With RQL, you can effortlessly extract valuable insights from complex datasets, making data analysis and manipulation tasks more efficient. RQL was initially developed to be used in an internal project, but we decided to open-source it so that others can benefit from it as well.
+`RQL` (Ruhis Query Language) is a powerful library designed to simplify the process of filtering, sorting, and aggregating large amounts of data. With RQL, you can effortlessly extract valuable insights from complex datasets, making data analysis and manipulation tasks more efficient. RQL was initially developed for an internal SIEM project, so it is well suited for security-related use cases, but it can be used for any type of data.
 
 ## Key Features
 
 - **Simple and intuitive syntax** - RQL is designed to be easy to learn and use. The syntax is similar to [KQL](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) or [XQL](https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-XQL-Language-Reference/Get-Started-with-XQL), but with a few key differences that make it more intuitive and powerful.
 - **Light, type-safe and developer friendly** - RQL is written in TypeScript and compiled to JavaScript. It is very lightweight and has a great documentation, making it easy to integrate into any project.
+- **Thoroughly tested** - RQL has a comprehensive test suite with a very code coverage, ensuring that it works as expected in all scenarios.
 
 ## Quick Start Guide
 
