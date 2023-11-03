@@ -31,7 +31,7 @@ const testData = [
     canceled: false,
     amount: 300,
     dueDate: new Date("2020-01-01"),
-    notes: "",
+    notes: "Need to order tools",
     uniqueNumber: "727411466252",
   },
   {
@@ -63,90 +63,30 @@ const testData = [
 ];
 
 describe("Test execution", () => {
-  test("It should execute: full expression", () => {
-    const query = `dataset = sales_invoices | limit 25 | filter amount > 1000 or dueDate < date() | filter canceled = false and customer contains "Jane Doe" and notes not contains "Need to order contains tools" | sort createdAt asc, amount desc | fields customer, createdAt, paid as isPaid, canceled, amount, dueDate, notes`;
+  test("execute full query successfully", () => {
+    const query = `dataset = sales_invoices | limit 25 | filter amount > 200 | filter canceled = false and customer contains "Daniels" and notes not contains "Need to order contains tools" | sort createdAt asc, amount desc | fields customer, createdAt, paid as isPaid, canceled, amount, dueDate, notes`;
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(1);
   });
-  test("It should execute: not equal filter", () => {
-    const query = "dataset = sales_invoices | filter id != 1";
-    const parsedQuery = QueryParser.parseQuery(query);
-    const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result.length).toBe(4);
-  });
-  test("It should execute: less than filter", () => {
-    const query = "dataset = sales_invoices | filter amount < 201";
-    const parsedQuery = QueryParser.parseQuery(query);
-    const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result.length).toBe(1);
-  });
-  test("It should execute: nested filter", () => {
-    const query =
-      'dataset = sales_invoices | filter details.industry contains "IT"';
-    const parsedQuery = QueryParser.parseQuery(query);
-    const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result.length).toBe(1);
-  });
-  test("It should execute: number equals filter", () => {
-    const query =
-      "dataset = sales_invoices | filter uniqueNumber = 727411466252";
-    const parsedQuery = QueryParser.parseQuery(query);
-    const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result.length).toBe(2);
-  });
-  test("It should execute: matches filter", () => {
-    const query =
-      "dataset = sales_invoices | filter customer matches ^\\w+\\s+D\\w*s";
-    const parsedQuery = QueryParser.parseQuery(query);
-    const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result.length).toBe(2);
-  });
-  /*test("It should fail with invalid regex format", () => {
-    const query =
-      "dataset = sales_invoices | filter customer matches ^\\w+\\s+D\\w(*";
-    expect(() => QueryParser.parseQuery(query)).toThrow(
-      "Invalid regex pattern"
-    );
-  });*/
-  /*test("It should fail with invalid field", () => {
-    const query = "dataset = sales_invoices | filter amoun < 201";
-    const parsedQuery = QueryParser.parseQuery(query);
-    expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
-      "Invalid field: 'amoun'"
-    );
-  });
-  test("It should fail with invalid field", () => {
-    const query =
-      'dataset = sales_invoices | filter details.industry.x contains "IT"';
-    const parsedQuery = QueryParser.parseQuery(query);
-    expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
-      "Invalid field: 'details.industry.x'"
-    );
-  });*/
-  test("It should execute with alias", () => {
+
+  test("fields: field alias & filter", () => {
     const query =
       "dataset = sales_invoices | fields amount as money | filter money < 201";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(1);
   });
-  /*test("It should fail with invalid field with alias", () => {
-    const query =
-      "dataset = sales_invoices | fields amount as money | filter amount < 201";
-    const parsedQuery = QueryParser.parseQuery(query);
-    expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
-      "Invalid field: 'amount'"
-    );
-  });*/
-  test("It should execute with alias", () => {
+
+  test("fields: field alias & sort", () => {
     const query =
       "dataset = sales_invoices | fields amount as money | sort money asc";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(5);
   });
-  test("It should fail with invalid sort field with alias", () => {
+
+  test("fields: field alias - invalid sort field with alias", () => {
     const query =
       "dataset = sales_invoices | fields amount as money | sort amount asc";
     const parsedQuery = QueryParser.parseQuery(query);
@@ -156,34 +96,196 @@ describe("Test execution", () => {
   });
 });
 
+describe("Test 'filter' statement execution", () => {
+  test("filter: not equals", () => {
+    const query = "dataset = sales_invoices | filter id != 1";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(4);
+  });
+
+  test("filter: less than", () => {
+    const query = "dataset = sales_invoices | filter amount < 201";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(1);
+  });
+
+  test("filter: greater than", () => {
+    const query = "dataset = sales_invoices | filter amount > 350";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: less than or equals", () => {
+    const query = "dataset = sales_invoices | filter amount <= 250";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: greater than or equals", () => {
+    const query = "dataset = sales_invoices | filter amount >= 300";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(3);
+  });
+
+  test("filter: nested field", () => {
+    const query =
+      'dataset = sales_invoices | filter details.industry contains "IT"';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(1);
+  });
+
+  test("filter: number equals", () => {
+    const query =
+      "dataset = sales_invoices | filter uniqueNumber = 727411466252";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: matches", () => {
+    const query =
+      "dataset = sales_invoices | filter customer matches ^\\w+\\s+D\\w*s";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: matches - invalid regex pattern", () => {
+    const query = "dataset = sales_invoices | filter customer matches ^[a-z";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
+      "Invalid regex pattern: '^[a-z'"
+    );
+  });
+
+  test("filter: multiple filters", () => {
+    const query =
+      "dataset = sales_invoices | filter amount > 200 | filter amount < 400";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+});
+
 describe("Test 'alter' statement execution", () => {
-  test("It should return uppercase name", () => {
+  test("alter: uppercase", () => {
     const query =
       "dataset = sales_invoices | filter id = 1 | alter customer = uppercase(customer)";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result[0].customer).toBe("JOHN DOE");
   });
-  test("It should return lowercase name", () => {
+
+  test("alter: lowercase", () => {
     const query =
       "dataset = sales_invoices | filter id = 1 | alter customer = lowercase(customer)";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result[0].customer).toBe("john doe");
   });
-  test("It should fail with invalid expression format", () => {
+
+  test("alter: substring", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 1 | alter customer = substring(customer, 1, 4)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].customer).toBe("ohn");
+  });
+
+  test("alter: multiply - static", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = multiply(amount, 3)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(600);
+  });
+
+  test("alter: multiply - dynamic", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = multiply(amount, id)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(400);
+  });
+
+  test("alter: add - static", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = add(amount, 3)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(203);
+  });
+
+  test("alter: add - dynamic", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = add(amount, id)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(202);
+  });
+
+  test("alter: subtract - static", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = subtract(amount, 3)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(197);
+  });
+
+  test("alter: subtract - dynamic", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = subtract(amount, id)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(198);
+  });
+
+  // Test for alter errors
+
+  test("alter: invalid format", () => {
     const query =
       "dataset = sales_invoices | filter id = 1 | alter customer = uppercase(customer";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid expression format"
     );
   });
-  test("It should fail with invalid alter statement", () => {
+
+  test("alter: invalid statement", () => {
     const query =
       "dataset = sales_invoices | filter id = 1 | alter customer = middlecase(customer)";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
       "Invalid alter statement: 'middlecase' with parameters 'customer'"
     );
+  });
+
+  test("alter: multiply - invalid dynamic field", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = multiply(amount, test)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(NaN);
+  });
+
+  test("alter: add - invalid dynamic field", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = add(amount, test)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(NaN);
+  });
+
+  test("alter: subtract - invalid dynamic field", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = subtract(amount, test)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(NaN);
   });
 });

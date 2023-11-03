@@ -23,7 +23,7 @@
    ```js
    const query =
      'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email, age | sort age desc | limit 10';
-   const parsedQuery = QueryParser.parseQuery(query); // This will convert the query string into JS object
+   const parsedQuery = QueryParser.parseQuery(query); // This will validate the query and convert it into a JS object
    const result = QueryExecutor.executeQuery(parsedQuery, dataset); // This will execute the query against the dataset
    ```
 
@@ -46,6 +46,7 @@ The following operators are supported in RQL:
 | ------------ | ----------------------------------------------------- |
 | =, !=        | Equal, Not equal                                      |
 | >, <         | Greater than, Less than                               |
+| >=, <=       | Greater than or equal, Less than or equal             |
 | and          | Boolean AND                                           |
 | or           | Boolean OR                                            |
 | contains     | Returns true if the specified string is contained     |
@@ -98,7 +99,18 @@ dataset = customer_records
 
 ### Description
 
-The `alter` statement is used to create or overwrite fields in the dataset using a value functions like addition, subtraction, letter casing, etc. The `alter` statement can be used multiple times in a query and the fields created by it can be used in other statements.
+The `alter` statement is used to create new or overwrite existing fields in the dataset using a value functions like addition, subtraction, letter casing, etc. The `alter` statement can be used multiple times in a query and the fields created by it can be used in other statements.
+
+### Functions
+
+| Function  | Syntax                                   | Description                  |
+| --------- | ---------------------------------------- | ---------------------------- |
+| add       | `add(<field1>, <field2 OR number>)`      | Adds two values              |
+| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values             |
+| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values            |
+| uppercase | `uppercase(<field>)`                     | Converts string to uppercase |
+| lowercase | `lowercase(<field>)`                     | Converts string to lowercase |
+| substring | `substring(<field>, <start>, <end>)`     | Extracts substring           |
 
 ### Examples
 
@@ -167,13 +179,20 @@ dataset = logins
 | fields country, username
 ```
 
+# Changelog
+
+## 1.3.0 (2023-11-03)
+
+- Added support for `<=` and `>=` operators
+- Fixed bug where query couldn't contain multiple `filter` statements
+- Improved test coverage for `QueryExecutor`
+- Cleaned test code
+- Updated dependencies
+
 # Roadmap
 
-- [ ] Better test coverage
-- [ ] Commenting & cleaning up code
-- [ ] Support for `<=` and `>=` operators
-- [ ] Support for `in` and `not in` operators
-- [ ] More functions for `alter` statement
+- Support for `in` and `not in` operators
+- More functions for `alter` statement
 
 # License
 

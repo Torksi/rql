@@ -15,7 +15,9 @@ export interface QueryFilterExpression {
     | "contains"
     | "notContains"
     | "lessThan"
-    | "greaterThan";
+    | "greaterThan"
+    | "lessThanOrEquals"
+    | "greaterThanOrEquals";
   value: string | number | boolean | Date;
 }
 

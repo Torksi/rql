@@ -43,52 +43,31 @@ export class QueryExecutor {
     // Filter
     if (query.filters && query.filters.length > 0) {
       results = results.filter((row) => {
+        let allFiltersResult = true; // This will track the result across all filters
+
         for (const filter of query.filters) {
-          let filterResult = true;
+          let filterResult = true; // Assume the filter passes until proven otherwise
+
           for (const block of filter.blocks) {
-            let blockResult = false;
+            let blockResult = false; // Assume the block fails until proven otherwise
+
             for (const expression of block.expressions) {
               const { field, operator, value } = expression;
               const fieldPath = field.split(".");
               let rowValue = row;
 
-              for (let i = 0; i < fieldPath.length; i += 1) {
-                const path = fieldPath[i];
-
+              // Evaluate the rowValue based on fieldPath
+              for (const path of fieldPath) {
                 if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
                   rowValue = null;
                   break;
                 }
-
-                // TODO: Fix this
-                /*if (fieldPath.length === 1) {
-                  if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
-                    throw new Error(`Invalid field: '${field}'`);
-                  }
-                  rowValue = rowValue[path];
-                  break;
-                }
-
-                if (i < fieldPath.length - 1) {
-                  if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
-                    rowValue = null;
-                    break;
-                  }
-                  rowValue = rowValue[path];
-                  continue;
-                }
-
-                if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
-                  throw new Error(
-                    `Invalid field: '${field}' ${path} ${i}:${
-                      fieldPath.length - 1
-                    }`
-                  );
-                }*/
                 rowValue = rowValue[path];
               }
 
+              // If rowValue is null, the block fails
               if (rowValue === null) {
+                filterResult = false;
                 break;
               }
 
@@ -119,6 +98,12 @@ export class QueryExecutor {
                 case "greaterThan":
                   blockResult = rowValue > value;
                   break;
+                case "lessThanOrEquals":
+                  blockResult = rowValue <= value;
+                  break;
+                case "greaterThanOrEquals":
+                  blockResult = rowValue >= value;
+                  break;
                 case "matches":
                   try {
                     const regex = new RegExp(value.toString());
@@ -128,22 +113,27 @@ export class QueryExecutor {
                   }
                   break;
                 default:
+                  // This should never happen as the validator should catch this
                   throw new Error(`Invalid operator: '${operator}'`);
               }
               if (!blockResult) {
-                break;
+                filterResult = false;
+                break; // Stop evaluating this filter as one block has failed
               }
             }
-            if (!blockResult) {
-              filterResult = false;
-              break;
+
+            if (!filterResult) {
+              allFiltersResult = false;
+              break; // Stop evaluating other filters as this one failed
             }
           }
-          if (filterResult) {
-            return true;
+
+          if (!allFiltersResult) {
+            break; // Stop the filter function as one filter has failed
           }
         }
-        return false;
+
+        return allFiltersResult;
       });
     }
 

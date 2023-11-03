@@ -139,11 +139,13 @@ export class QueryParser {
       "not contains",
       "<",
       ">",
+      "<=",
+      ">=",
     ];
 
     // The operator capturing group now treats "not contains" as a single operator
     const match = expression.match(
-      /("[^"]+"|\S+)\s*(=|!=|contains|matches|"not contains"|<|>)\s*("[^"]+"|\S+)/i
+      /("[^"]+"|\S+)\s*(=|!=|contains|matches|"not contains"|<=|>=|<|>)\s*("[^"]+"|\S+)/i
     );
     if (!match) {
       throw new Error(`Invalid filter expression: '${expression}'`);
@@ -158,6 +160,7 @@ export class QueryParser {
     const value = match[3].replace(/"/g, "");
 
     if (!operators.includes(operator)) {
+      // This should never happen as the regex should catch this
       throw new Error(`Invalid filter expression: '${expression}'`);
     }
 
@@ -202,6 +205,18 @@ export class QueryParser {
         return {
           field,
           operator: "greaterThan",
+          value: this.parseFilterValue(value),
+        };
+      case "<=":
+        return {
+          field,
+          operator: "lessThanOrEquals",
+          value: this.parseFilterValue(value),
+        };
+      case ">=":
+        return {
+          field,
+          operator: "greaterThanOrEquals",
           value: this.parseFilterValue(value),
         };
       default:

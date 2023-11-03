@@ -1,7 +1,7 @@
 import { QueryParser } from "../src/QueryParser";
 
 describe("Test query validation", () => {
-  test("It should execute", () => {
+  it("should validate the full query", () => {
     const query = `dataset = sales_invoices | limit 25 | filter amount > 1000 or dueDate < date() | filter canceled = false and customer contains "Jane Doe" and notes not contains "Need to order special tools" | sort createdAt asc, amount desc | fields name, createdAt, paid as isPaid, canceled, amount, dueDate, notes`;
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.dataset).toBe("sales_invoices");
@@ -10,35 +10,41 @@ describe("Test query validation", () => {
     expect(parsedQuery.filters[0].blocks.length).toBe(2);
     expect(parsedQuery.filters[1].blocks.length).toBe(1);
   });
-  test("It should fail with invalid sort direction", () => {
+
+  it("should fail with invalid sort direction", () => {
     const query = "dataset = sales_invoices | sort createdAt asd";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid sort direction: 'asd'"
     );
   });
-  test("It should fail with invalid sort statement", () => {
+
+  it("should fail with invalid sort statement", () => {
     const query = "dataset = sales_invoices | sort createdAt . asc";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid sort statement: 'createdAt . asc'"
     );
   });
-  test("It should fail with invalid statement", () => {
+
+  it("should fail with invalid statement", () => {
     const query = "dataset = sales_invoices | sort createdAt asc | bug";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid statement: 'bug'"
     );
   });
-  test("It should fail with invalid statement", () => {
+
+  it("should fail with invalid statement", () => {
     const query = "dataset = sales_invoices | sort createdAt asc |";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid statement: ''"
     );
   });
-  test("It should fail with no dataset", () => {
+
+  it("should fail with no dataset", () => {
     const query = "filter amount > 1000 or dueDate < date()";
     expect(() => QueryParser.parseQuery(query)).toThrow("No dataset specified");
   });
-  test("It should fail with invalid dataset", () => {
+
+  test("it should fail with invalid dataset", () => {
     const query = "dataset";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid dataset statement: 'dataset'"
@@ -47,24 +53,27 @@ describe("Test query validation", () => {
 });
 
 describe("Test 'limit' statement", () => {
-  test("It should return the correct limit", () => {
+  it("should return the correct limit", () => {
     const query =
       "dataset = sales_invoices | fields name, createdAt, paid as isPaid, canceled, amount, dueDate, notes | limit 25";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.limit).toBe(25);
   });
-  test("It should return the default limit", () => {
+
+  it("should return the default limit", () => {
     const query = "dataset = sales_invoices | fields name, createdAt";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.limit).toBe(0);
   });
-  test("It should fail with invalid limit", () => {
+
+  it("should fail with invalid limit", () => {
     const query = "filter amount > 1000 or dueDate < date() | limit";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid limit statement: 'limit'"
     );
   });
-  test("It should fail with invalid limit", () => {
+
+  it("should fail with invalid limit", () => {
     const query = "filter amount > 1000 or dueDate < date() | limit ddd";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid limit statement: 'limit ddd'"
@@ -73,13 +82,14 @@ describe("Test 'limit' statement", () => {
 });
 
 describe("Test 'fields' statement", () => {
-  test("It should return the correct field alias", () => {
+  it("should return the correct field alias", () => {
     const query =
       "dataset = sales_invoices | fields name, createdAt, paid as isPaid, canceled, amount, dueDate, notes";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.fields[2].alias).toBe("isPaid");
   });
-  test("It should not return alias", () => {
+
+  it("should not return alias", () => {
     const query = "dataset = sales_invoices | fields name, createdAt";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.fields[0].alias).toBe(undefined);
@@ -87,7 +97,7 @@ describe("Test 'fields' statement", () => {
 });
 
 describe("Test 'sort' statement", () => {
-  test("It should return the correct sort direction", () => {
+  it("should return the correct sort direction", () => {
     const query = "dataset = sales_invoices | sort createdAt asc";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.sort).not.toBe(null);
@@ -95,7 +105,8 @@ describe("Test 'sort' statement", () => {
       expect(parsedQuery.sort[0].direction).toBe("asc");
     }
   });
-  test("It should return the correct sort field", () => {
+
+  it("should return the correct sort field", () => {
     const query = "dataset = sales_invoices | sort createdAt desc";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.sort).not.toBe(null);
@@ -106,33 +117,37 @@ describe("Test 'sort' statement", () => {
 });
 
 describe("Test 'filter' statement", () => {
-  test("It should return the correct filter field", () => {
+  it("should return the correct filter field", () => {
     const query = "dataset = sales_invoices | filter amount > 1000";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.filters[0].blocks[0].expressions[0].field).toBe(
       "amount"
     );
   });
-  test("It should return the correct filter operator", () => {
+
+  it("should return the correct filter operator", () => {
     const query = "dataset = sales_invoices | filter amount > 1000";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.filters[0].blocks[0].expressions[0].operator).toBe(
       "greaterThan"
     );
   });
-  test("It should return the correct filter operator", () => {
+
+  it("should return the correct filter operator", () => {
     const query = "dataset = sales_invoices | filter amount != 1000";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.filters[0].blocks[0].expressions[0].operator).toBe(
       "notEquals"
     );
   });
-  test("It should return the correct filter value", () => {
+
+  it("should return the correct filter value", () => {
     const query = "dataset = sales_invoices | filter amount > 1000";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.filters[0].blocks[0].expressions[0].value).toBe(1000);
   });
-  test("It should return the correct filter operator", () => {
+
+  it("should return the correct filter operator", () => {
     const query =
       'dataset = sales_invoices | filter amount > 1000 and notes not contains "Tool tips"';
     const parsedQuery = QueryParser.parseQuery(query);
@@ -140,17 +155,27 @@ describe("Test 'filter' statement", () => {
       "notContains"
     );
   });
-  test("It should fail with invalid filter expression", () => {
+
+  it("should fail with invalid filter expression", () => {
     const query = "dataset = sales_invoices | filter amount > 1000 and notes";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid filter expression: 'notes'"
     );
   });
-  test("It should fail with invalid filter expression", () => {
+
+  it("should fail with invalid filter expression", () => {
     const query =
       "dataset = sales_invoices | filter amount > 1000 and notes equals 'man'";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid filter expression: 'notes equals 'man''"
+    );
+  });
+
+  it("should fail with invalid filter operator", () => {
+    const query =
+      "dataset = sales_invoices | filter amount > 1000 and notes equalss 'man'";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid filter expression: 'notes equalss 'man''"
     );
   });
 });
