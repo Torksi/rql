@@ -11,12 +11,12 @@
 ## Quick Start Guide
 
 1. Install via your preferred package manager:
-   - `npm install @ruhis/rql`
-   - `yarn add @ruhis/rql`
+   - `npm install @ruhisfi/rql`
+   - `yarn add @ruhisfi/rql`
 2. Import `QueryParser` and `QueryExecutor` to your code:
 
    ```js
-   import { QueryParser, QueryExecutor } from "@ruhis/rql";
+   import { QueryParser, QueryExecutor } from "@ruhisfi/rql";
    ```
 
 3. Parse query and execute it against a dataset:
