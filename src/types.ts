@@ -47,3 +47,7 @@ export interface Query {
   sort: QuerySort[] | null;
   limit: number;
 }
+
+export interface QueryParsingOptions {
+  strictDataset: boolean;
+}

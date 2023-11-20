@@ -106,14 +106,15 @@ The `alter` statement is used to create new or overwrite existing fields in the 
 
 ### Functions
 
-| Function  | Syntax                                   | Description                  |
-| --------- | ---------------------------------------- | ---------------------------- |
-| add       | `add(<field1>, <field2 OR number>)`      | Adds two values              |
-| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values             |
-| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values            |
-| uppercase | `uppercase(<field>)`                     | Converts string to uppercase |
-| lowercase | `lowercase(<field>)`                     | Converts string to lowercase |
-| substring | `substring(<field>, <start>, <end>)`     | Extracts substring           |
+| Function  | Syntax                                   | Description                                        |
+| --------- | ---------------------------------------- | -------------------------------------------------- |
+| add       | `add(<field1>, <field2 OR number>)`      | Adds two values                                    |
+| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values                                   |
+| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values                                  |
+| uppercase | `uppercase(<field>)`                     | Converts string to uppercase                       |
+| lowercase | `lowercase(<field>)`                     | Converts string to lowercase                       |
+| substring | `substring(<field>, <start>, <end>)`     | Extracts substring                                 |
+| count     | `count(<distinct OR all>, <field>)`      | Counts the number of either distinct or all values |
 
 ### Examples
 
@@ -184,13 +185,19 @@ dataset = logins
 
 # Changelog
 
+## 1.3.1 (2023-11-20)
+
+- Fixed bug where OR operator was not working correctly in `filter` statement
+- Added `QueryParsingOptions` to QueryParser
+- Added option to disable dataset requirement via `strictDataset` option
+
 ## 1.3.0 (2023-11-03)
 
 - Added support for `<=` and `>=` operators
 - Added `incidr` and `not incidr` operators
 - Added alias `~=` for `matches` operator
 - Fixed bug where query couldn't contain multiple `filter` statements
-- Improved test coverage for `QueryExecutor`
+- Improved test coverage for QueryExecutor
 - Cleaned test code
 - Updated dependencies
 

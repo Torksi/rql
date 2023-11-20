@@ -72,10 +72,19 @@ const testData2 = [
 
 describe("Test execution", () => {
   test("execute full query successfully", () => {
-    const query = `dataset = sales_invoices | limit 25 | filter amount > 200 | filter canceled = false and customer contains "Daniels" and notes not contains "Need to order contains tools" | sort createdAt asc, amount desc | fields customer, createdAt, paid as isPaid, canceled, amount, dueDate, notes`;
+    const query =
+      'dataset = sales_invoices | limit 25 | filter amount > 200 | filter canceled = false and customer contains "Daniels" and notes not contains "Need to order contains tools" | sort createdAt asc, amount desc | fields customer, createdAt, paid as isPaid, canceled, amount, dueDate, notes';
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result.length).toBe(1);
+  });
+
+  test("execute full query successfully", () => {
+    const query =
+      'dataset = sales_invoices | limit 25 | filter amount > 200 or paid = true | filter canceled = false and notes not contains "Need to order contains tools" | sort createdAt asc, amount desc | fields customer, createdAt, paid as isPaid, canceled, amount, dueDate, notes';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(3);
   });
 
   test("fields: field alias & filter", () => {
@@ -215,6 +224,34 @@ describe("Test 'filter' statement execution", () => {
       "dataset = sales_invoices | filter amount > 200 | filter amount < 400";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
+
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: equals with multiple statements", () => {
+    const query =
+      'dataset = sales_invoices | filter customer = "Jane Doe" | filter id = 2';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+
+    expect(result.length).toBe(1);
+  });
+
+  test("filter: equals with AND", () => {
+    const query =
+      'dataset = sales_invoices | filter customer = "Jane Doe" and id = 2';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+
+    expect(result.length).toBe(1);
+  });
+
+  test("filter: equals with OR", () => {
+    const query =
+      'dataset = sales_invoices | filter customer = "Jane Doe" or id = 1';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+
     expect(result.length).toBe(2);
   });
 });

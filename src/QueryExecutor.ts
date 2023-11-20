@@ -44,13 +44,14 @@ export class QueryExecutor {
     // Filter
     if (query.filters && query.filters.length > 0) {
       results = results.filter((row) => {
-        let allFiltersResult = true; // This will track the result across all filters
+        let allFiltersResult = true; // Track the result across all filters (MULTI logic)
 
-        for (const filter of query.filters) {
-          let filterResult = true; // Assume the filter passes until proven otherwise
+        // Label for breaking out of nested loops
+        filterLoop: for (const filter of query.filters) {
+          let filterResult = false; // Assume filter fails for OR and AND logic until a passing block is found
 
           for (const block of filter.blocks) {
-            let blockResult = false; // Assume the block fails until proven otherwise
+            let blockResult = true; // Assume block passes (AND logic) until a failing expression is found
 
             for (const expression of block.expressions) {
               const { field, operator, value } = expression;
@@ -66,10 +67,10 @@ export class QueryExecutor {
                 rowValue = rowValue[path];
               }
 
-              // If rowValue is null, the block fails
+              // If rowValue is null, the expression fails
               if (rowValue === null) {
-                filterResult = false;
-                break;
+                blockResult = false;
+                break; // Stop evaluating this block
               }
 
               switch (operator) {
@@ -124,19 +125,19 @@ export class QueryExecutor {
                   throw new Error(`Invalid operator: '${operator}'`);
               }
               if (!blockResult) {
-                filterResult = false;
-                break; // Stop evaluating this filter as one block has failed
+                break; // Stop evaluating this block as one expression has failed
               }
             }
 
-            if (!filterResult) {
-              allFiltersResult = false;
-              break; // Stop evaluating other filters as this one failed
+            if (blockResult) {
+              filterResult = true; // A block passed, so the filter passes for OR and AND logic
+              break; // Stop evaluating other blocks in this filter
             }
           }
 
-          if (!allFiltersResult) {
-            break; // Stop the filter function as one filter has failed
+          if (!filterResult) {
+            allFiltersResult = false;
+            break filterLoop; // Stop the filter function as one filter has failed (MULTI logic)
           }
         }
 

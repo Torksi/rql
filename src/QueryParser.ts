@@ -3,6 +3,7 @@ import {
   QueryFilter,
   QueryFilterBlock,
   QueryFilterExpression,
+  QueryParsingOptions,
 } from "./types";
 
 export class QueryParser {
@@ -15,12 +16,16 @@ export class QueryParser {
    * The returned Query object has properties matching the parsed elements of the query string. If any part of the query string cannot be parsed correctly, an error will be thrown.
    *
    * @param {string} queryString The query string to be parsed.
+   * @param {QueryParsingOptions} options Options for parsing the query string.
    * @returns {Query} The parsed query as a Query object.
    * @throws {Error} If any part of the query string cannot be parsed, or if no dataset is specified.
    * @public
    * @static
    */
-  public static parseQuery(queryString: string): Query {
+  public static parseQuery(
+    queryString: string,
+    options: QueryParsingOptions = { strictDataset: true }
+  ): Query {
     const query: Query = {
       dataset: "",
       fields: [],
@@ -109,7 +114,7 @@ export class QueryParser {
       }
     }
 
-    if (!query.dataset) {
+    if (!query.dataset && options.strictDataset) {
       throw new Error("No dataset specified");
     }
 
