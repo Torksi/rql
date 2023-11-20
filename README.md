@@ -106,15 +106,14 @@ The `alter` statement is used to create new or overwrite existing fields in the 
 
 ### Functions
 
-| Function  | Syntax                                   | Description                                        |
-| --------- | ---------------------------------------- | -------------------------------------------------- |
-| add       | `add(<field1>, <field2 OR number>)`      | Adds two values                                    |
-| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values                                   |
-| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values                                  |
-| uppercase | `uppercase(<field>)`                     | Converts string to uppercase                       |
-| lowercase | `lowercase(<field>)`                     | Converts string to lowercase                       |
-| substring | `substring(<field>, <start>, <end>)`     | Extracts substring                                 |
-| count     | `count(<distinct OR all>, <field>)`      | Counts the number of either distinct or all values |
+| Function  | Syntax                                   | Description                  |
+| --------- | ---------------------------------------- | ---------------------------- |
+| add       | `add(<field1>, <field2 OR number>)`      | Adds two values              |
+| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values             |
+| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values            |
+| uppercase | `uppercase(<field>)`                     | Converts string to uppercase |
+| lowercase | `lowercase(<field>)`                     | Converts string to lowercase |
+| substring | `substring(<field>, <start>, <end>)`     | Extracts substring           |
 
 ### Examples
 
