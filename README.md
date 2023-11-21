@@ -184,9 +184,13 @@ dataset = logins
 
 # Changelog
 
+## 1.3.2 (2023-11-21)
+
+- Fixed a bug where nested field in `filter` statement was not working correctly if the field didn't exist
+
 ## 1.3.1 (2023-11-20)
 
-- Fixed bug where OR operator was not working correctly in `filter` statement
+- Fixed a bug where OR operator was not working correctly in `filter` statement
 - Added `QueryParsingOptions` to QueryParser
 - Added option to disable dataset requirement via `strictDataset` option
 
@@ -195,7 +199,7 @@ dataset = logins
 - Added support for `<=` and `>=` operators
 - Added `incidr` and `not incidr` operators
 - Added alias `~=` for `matches` operator
-- Fixed bug where query couldn't contain multiple `filter` statements
+- Fixed a bug where query couldn't contain multiple `filter` statements
 - Improved test coverage for QueryExecutor
 - Cleaned test code
 - Updated dependencies

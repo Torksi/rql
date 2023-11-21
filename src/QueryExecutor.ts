@@ -60,7 +60,10 @@ export class QueryExecutor {
 
               // Evaluate the rowValue based on fieldPath
               for (const path of fieldPath) {
-                if (!Object.prototype.hasOwnProperty.call(rowValue, path)) {
+                if (
+                  rowValue == null ||
+                  !Object.prototype.hasOwnProperty.call(rowValue, path)
+                ) {
                   rowValue = null;
                   break;
                 }
