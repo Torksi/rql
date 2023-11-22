@@ -39,6 +39,12 @@ export interface QueryField {
   alias?: string;
 }
 
+export interface QueryComp {
+  field: string;
+  function: string;
+  returnField: string;
+}
+
 export interface QueryAlter {
   field: string;
   func: string;
@@ -51,8 +57,10 @@ export interface Query {
   filters: QueryFilter[];
   alters: QueryAlter[];
   sort: QuerySort[] | null;
+  comp: QueryComp[];
   dedup: QueryDedup | null;
   limit: number;
+  returnType: "records" | "stats";
 }
 
 export interface QueryParsingOptions {

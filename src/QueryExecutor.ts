@@ -216,7 +216,106 @@ export class QueryExecutor {
       results = results.slice(0, query.limit);
     }
 
-    return results;
+    // Return type
+
+    const stats: any[] = [];
+
+    if (query.returnType === "stats") {
+      const statsRow: any = {};
+
+      for (const comp of query.comp) {
+        switch (comp.function) {
+          case "count":
+            statsRow[comp.returnField] = results.reduce(
+              (accumulator, currentRow) => {
+                if (dynamicField(comp.field, currentRow) !== null) {
+                  return accumulator + 1;
+                }
+                return accumulator;
+              },
+              0
+            );
+            break;
+          case "count_distinct":
+            statsRow[comp.returnField] = new Set(
+              results
+                .map((row) => dynamicField(comp.field, row))
+                .filter((value) => value !== null && value !== undefined)
+            ).size;
+            break;
+          case "min":
+            statsRow[comp.returnField] = Math.min(
+              ...results
+                .map((row) => dynamicField(comp.field, row))
+                .filter((value) => value !== null && value !== undefined)
+            );
+            break;
+          case "max":
+            statsRow[comp.returnField] = Math.max(
+              ...results
+                .map((row) => dynamicField(comp.field, row))
+                .filter((value) => value !== null && value !== undefined)
+            );
+            break;
+          case "avg":
+            statsRow[comp.returnField] =
+              results
+                .map((row) => dynamicField(comp.field, row))
+                .filter((value) => value !== null && value !== undefined)
+                .reduce((a, b) => a + b, 0) / results.length;
+            break;
+          case "earliest":
+            statsRow[comp.returnField] = new Date(
+              Math.min(
+                ...results
+                  .map((row) => dynamicField(comp.field, row))
+                  .filter((value) => value !== null && value !== undefined)
+              )
+            );
+            break;
+          case "latest":
+            statsRow[comp.returnField] = new Date(
+              Math.max(
+                ...results
+                  .map((row) => dynamicField(comp.field, row))
+                  .filter((value) => value !== null && value !== undefined)
+              )
+            );
+            break;
+          case "sum":
+            statsRow[comp.returnField] = results
+              .map((row) => dynamicField(comp.field, row))
+              .filter((value) => value !== null && value !== undefined)
+              .reduce((a, b) => a + b, 0);
+            break;
+          case "median": {
+            const sorted = results
+              .map((row) => dynamicField(comp.field, row))
+              .filter((value) => value !== null && value !== undefined)
+              .sort((a, b) => a - b);
+            const middle = Math.floor(sorted.length / 2);
+            statsRow[comp.returnField] =
+              sorted.length % 2 !== 0
+                ? sorted[middle]
+                : (sorted[middle - 1] + sorted[middle]) / 2;
+            break;
+          }
+          case "first":
+            statsRow[comp.returnField] = results[0][comp.field];
+            break;
+          case "last":
+            statsRow[comp.returnField] =
+              results[results.length - 1][comp.field];
+            break;
+          default:
+            throw new Error(`Invalid comp function: '${comp.function}'`);
+        }
+      }
+
+      stats.push(statsRow);
+    }
+
+    return query.returnType === "records" ? results : stats;
   }
 
   /**

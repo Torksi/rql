@@ -74,11 +74,40 @@ const testData2 = [
 ];
 
 const testData3 = [
-  { id: 1, username: "john.doe", device: "mac-1", createdAt: "2022-05-01" },
-  { id: 2, username: "john.doe", device: "mac-1", createdAt: "2022-02-01" },
-  { id: 3, username: "jane.doe", device: "win-1", createdAt: "2022-05-01" },
-  { id: 4, username: "bob.builder", device: "win-2", createdAt: "2022-05-02" },
-  { id: 5, username: "john.doe", device: "win-1", createdAt: "2022-05-02" },
+  {
+    id: 1,
+    username: "john.doe",
+    device: "mac-1",
+    createdAt: "2022-05-01",
+    location: "US",
+  },
+  {
+    id: 2,
+    username: "john.doe",
+    device: "mac-1",
+    createdAt: "2022-02-01",
+    location: "US",
+  },
+  {
+    id: 3,
+    username: "jane.doe",
+    device: "win-1",
+    createdAt: "2022-05-01",
+    location: "GB",
+  },
+  {
+    id: 4,
+    username: "bob.builder",
+    device: "win-2",
+    createdAt: "2022-05-02",
+  },
+  {
+    id: 5,
+    username: "john.doe",
+    device: "win-1",
+    createdAt: "2022-05-02",
+    location: "GB",
+  },
 ];
 
 const testData4 = [
@@ -480,6 +509,77 @@ describe("Test 'dedup' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     expect(() => QueryExecutor.executeQuery(parsedQuery, testData3)).toThrow(
       "Invalid dedup field: 'location'"
+    );
+  });
+});
+
+describe("Test 'comp' statement execution", () => {
+  test("comp: count", () => {
+    const query = "dataset = signInLogs | comp count username as totalUsers";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(1);
+    expect(result[0].totalUsers).toBe(5);
+  });
+
+  test("comp: count - non-existing field", () => {
+    const query =
+      "dataset = signInLogs | comp count location as totalCountries";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(1);
+    expect(result[0].totalCountries).toBe(4);
+  });
+
+  test("comp: count_distinct - non-existing field", () => {
+    const query =
+      "dataset = signInLogs | comp count_distinct location as totalCountries";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(1);
+    expect(result[0].totalCountries).toBe(2);
+  });
+
+  test("comp: max / min / avg / sum / median", () => {
+    const query =
+      "dataset = sales_invoices | comp max amount as maxAmount | comp min amount as minAmount | comp avg amount as avgAmount | comp sum amount as sumAmount | comp median amount as medianAmount";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(1);
+    expect(result[0].maxAmount).toBe(900);
+    expect(result[0].minAmount).toBe(200);
+    expect(result[0].avgAmount).toBe(410);
+    expect(result[0].sumAmount).toBe(2050);
+    expect(result[0].medianAmount).toBe(300);
+  });
+
+  test("comp: earliest / latest", () => {
+    const query =
+      "dataset = sales_invoices | comp earliest createdAt as earliestDate | comp latest createdAt as latestDate";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(1);
+    expect(result[0].earliestDate.toISOString()).toBe(
+      "2020-01-01T00:00:00.000Z"
+    );
+    expect(result[0].latestDate.toISOString()).toBe("2020-01-05T00:00:00.000Z");
+  });
+
+  test("comp: first / last", () => {
+    const query =
+      "dataset = signInLogs | comp first device as firstDevice | comp last device as lastDevice";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(1);
+    expect(result[0].firstDevice).toBe("mac-1");
+    expect(result[0].lastDevice).toBe("win-1");
+  });
+
+  test("comp: invalid function", () => {
+    const query = "dataset = signInLogs | comp countt username as totalUsers";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(() => QueryExecutor.executeQuery(parsedQuery, testData3)).toThrow(
+      "Invalid comp function: 'countt'"
     );
   });
 });

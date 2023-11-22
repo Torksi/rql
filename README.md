@@ -38,6 +38,7 @@ The query consists of multiple statements separated by the pipe (`|`) character.
 1. `sort`
 1. `dedup`
 1. `limit`
+1. `comp`
 1. (`dataset`)
 
 ## Operators
@@ -127,6 +128,42 @@ dataset = products
 | fields ean, name, cost
 ```
 
+## comp
+
+### Syntax
+
+`comp <function> <field> as <returnField>`
+
+### Description
+
+The `comp` statement is used to calculate statistics for results. This function will override other returned records. If used multiple times, the statistics will be merged on one row.
+
+### Functions
+
+| Function       | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| avg            | Returns the average value of the field                        |
+| count          | Returns the number of records where field is not null         |
+| count_distinct | Returns the number of distinct values where field is not null |
+| earliest       | Returns the earliest timestamp                                |
+| first          | Returns the first value                                       |
+| last           | Returns the last value                                        |
+| latest         | Returns the latest timestamp                                  |
+| max            | Returns the maximum value                                     |
+| median         | Returns the median value                                      |
+| min            | Returns the minimum value                                     |
+| sum            | Returns the sum of values                                     |
+
+### Examples
+
+```
+dataset = logins
+| filter country = "USA"
+| comp count username as totalUsers
+| comp count_distinct username as distinctUsers
+| comp earliest _time as firstLogin
+```
+
 ## filter
 
 ### Syntax
@@ -205,6 +242,11 @@ dataset = logins
 ```
 
 # Changelog
+
+## 1.5.0 (2023-11-22)
+
+- Added support for `comp` statement
+  - Added support for `avg`, `count`, `count_distinct`, `earliest`, `first`, `last`, `latest`, `max`, `median`, `min`, `sum` functions
 
 ## 1.4.0 (2023-11-22)
 

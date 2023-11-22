@@ -31,9 +31,11 @@ export class QueryParser {
       fields: [],
       filters: [],
       alters: [],
+      comp: [],
       sort: null,
       dedup: null,
       limit: 0,
+      returnType: "records",
     };
 
     const queryLines = queryString.split("\n");
@@ -53,7 +55,7 @@ export class QueryParser {
           throw new Error(`Invalid dataset statement: '${statement}'`);
         }
         query.dataset = statement.split("=")[1].trim();
-      } else if (statement.startsWith("filter")) {
+      } else if (statement.startsWith("filter ")) {
         const filter = statement.substring(6).trim();
         const parsedFilter = this.parseFilter(filter);
         query.filters.push(parsedFilter);
@@ -149,7 +151,7 @@ export class QueryParser {
         }
 
         query.limit = limit;
-      } else if (statement.startsWith("alter")) {
+      } else if (statement.startsWith("alter ")) {
         const pattern =
           /^(?:alter)?\s*([a-zA-Z_]\w*)\s*=\s*([a-zA-Z_]\w*)\((.*?)\)$/;
         const match = statement.match(pattern);
@@ -165,6 +167,28 @@ export class QueryParser {
           func: functionName,
           parameters: parameters.split(",").map((param) => param.trim()),
         });
+      } else if (statement.startsWith("comp ")) {
+        const parts = statement.split(" ");
+        if (parts.length !== 5) {
+          throw new Error(`Invalid comp statement: '${statement}'`);
+        }
+
+        const func = parts[1].trim();
+        const field = parts[2].trim();
+        const asField = parts[3].trim();
+        const returnField = parts[4].trim();
+
+        if (asField !== "as") {
+          throw new Error(`Invalid comp statement: '${statement}'`);
+        }
+
+        query.comp.push({
+          function: func,
+          field,
+          returnField,
+        });
+
+        query.returnType = "stats";
       } else {
         throw new Error(`Invalid statement: '${statement}'`);
       }
