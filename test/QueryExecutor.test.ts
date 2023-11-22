@@ -22,6 +22,9 @@ const testData = [
     dueDate: new Date("2023-12-12"),
     notes: "This is a note",
     uniqueNumber: 727411466252,
+    details: {
+      wealth: 360500,
+    },
   },
   {
     id: 3,
@@ -68,6 +71,33 @@ const testData2 = [
   { id: 3, srcIp: "192.168.1.9" },
   { id: 4, srcIp: "0:0:0:0:0:FFFF:222.1.41.9" },
   { id: 5, srcIp: "85.25.14.92" },
+];
+
+const testData3 = [
+  { id: 1, username: "john.doe", device: "mac-1", createdAt: "2022-05-01" },
+  { id: 2, username: "john.doe", device: "mac-1", createdAt: "2022-02-01" },
+  { id: 3, username: "jane.doe", device: "win-1", createdAt: "2022-05-01" },
+  { id: 4, username: "bob.builder", device: "win-2", createdAt: "2022-05-02" },
+  { id: 5, username: "john.doe", device: "win-1", createdAt: "2022-05-02" },
+];
+
+const testData4 = [
+  { id: 1, osActorPrimaryUsername: "domain.local\\john.doe" },
+  { id: 2, causalityActorPrimaryUsername: "john.doe" },
+  {
+    id: 3,
+    actorPrimaryUsername: "jane.doe",
+    osActorPrimaryUsername: "domain.local\\jane.doe",
+  },
+  {
+    id: 4,
+    actorPrimaryUsername: "bob.builder",
+    causalityActorPrimaryUsername: "bob.builder",
+  },
+  {
+    id: 5,
+    webUsername: "john.doe",
+  },
 ];
 
 describe("Test execution", () => {
@@ -313,6 +343,14 @@ describe("Test 'alter' statement execution", () => {
     expect(result[0].testValue).toBe(202);
   });
 
+  test("alter: add - dynamic, nested", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 2 | alter testValue = add(amount, details.wealth)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].testValue).toBe(360700);
+  });
+
   test("alter: subtract - static", () => {
     const query =
       "dataset = sales_invoices | filter id = 2 | alter testValue = subtract(amount, 3)";
@@ -327,6 +365,30 @@ describe("Test 'alter' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
     expect(result[0].testValue).toBe(198);
+  });
+
+  test("alter: coalesce", () => {
+    const query =
+      "dataset = events | alter username = coalesce(osActorPrimaryUsername, actorPrimaryUsername, causalityActorPrimaryUsername)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData4);
+    expect(result[0].username).toBe("domain.local\\john.doe");
+    expect(result[1].username).toBe("john.doe");
+    expect(result[2].username).toBe("domain.local\\jane.doe");
+    expect(result[3].username).toBe("bob.builder");
+    expect(result[4].username).toBe(null);
+  });
+
+  test("alter: incidr", () => {
+    const query =
+      "dataset = network_logs | alter inLocal = incidr(srcIp, 192.168.0.0/16)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData2);
+    expect(result[0].inLocal).toBe(false);
+    expect(result[1].inLocal).toBe(true);
+    expect(result[2].inLocal).toBe(true);
+    expect(result[3].inLocal).toBe(false);
+    expect(result[4].inLocal).toBe(false);
   });
 
   // Test for alter errors
@@ -353,7 +415,7 @@ describe("Test 'alter' statement execution", () => {
       "dataset = sales_invoices | filter id = 2 | alter testValue = multiply(amount, test)";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result[0].testValue).toBe(NaN);
+    expect(result[0].testValue).toBe(0);
   });
 
   test("alter: add - invalid dynamic field", () => {
@@ -361,7 +423,7 @@ describe("Test 'alter' statement execution", () => {
       "dataset = sales_invoices | filter id = 2 | alter testValue = add(amount, test)";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result[0].testValue).toBe(NaN);
+    expect(result[0].testValue).toBe(200);
   });
 
   test("alter: subtract - invalid dynamic field", () => {
@@ -369,6 +431,55 @@ describe("Test 'alter' statement execution", () => {
       "dataset = sales_invoices | filter id = 2 | alter testValue = subtract(amount, test)";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData);
-    expect(result[0].testValue).toBe(NaN);
+    expect(result[0].testValue).toBe(200);
+  });
+});
+
+describe("Test 'dedup' statement execution", () => {
+  test("dedup: default", () => {
+    const query = "dataset = signInLogs | dedup username";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(3);
+    expect(result[0].username).toBe("john.doe");
+    expect(result[2].username).toBe("bob.builder");
+  });
+
+  test("dedup: asc", () => {
+    const query = "dataset = signInLogs | dedup username by createdAt asc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(3);
+    expect(result[0].username).toBe("john.doe");
+    expect(result[2].username).toBe("bob.builder");
+  });
+
+  test("dedup: multiple fields", () => {
+    const query =
+      "dataset = signInLogs | dedup username, device by createdAt desc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(4);
+    expect(result[0].username).toBe("john.doe");
+    expect(result[2].username).toBe("bob.builder");
+    expect(result[3].device).toBe("win-1");
+  });
+
+  test("dedup: invalid field", () => {
+    const query =
+      "dataset = signInLogs | fields username, device | dedup username, device, location by createdAt desc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(() => QueryExecutor.executeQuery(parsedQuery, testData3)).toThrow(
+      "Invalid dedup field: 'location'"
+    );
+  });
+
+  test("dedup: invalid field", () => {
+    const query =
+      "dataset = signInLogs| dedup username, device, location by createdAt desc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(() => QueryExecutor.executeQuery(parsedQuery, testData3)).toThrow(
+      "Invalid dedup field: 'location'"
+    );
   });
 });

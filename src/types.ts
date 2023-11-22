@@ -28,6 +28,12 @@ export interface QuerySort {
   direction: "asc" | "desc";
 }
 
+export interface QueryDedup {
+  fields: string[];
+  sortBy: string | undefined;
+  sortDirection: "asc" | "desc" | undefined;
+}
+
 export interface QueryField {
   name: string;
   alias?: string;
@@ -45,6 +51,7 @@ export interface Query {
   filters: QueryFilter[];
   alters: QueryAlter[];
   sort: QuerySort[] | null;
+  dedup: QueryDedup | null;
   limit: number;
 }
 

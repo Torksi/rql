@@ -32,10 +32,20 @@ export class QueryParser {
       filters: [],
       alters: [],
       sort: null,
+      dedup: null,
       limit: 0,
     };
 
-    const queryParts = queryString.split("|");
+    const queryLines = queryString.split("\n");
+    let constructedQuery = "";
+    queryLines.map((l) => {
+      if (l.startsWith("#")) {
+        return;
+      }
+      constructedQuery += l;
+    });
+
+    const queryParts = constructedQuery.split("|");
     for (const part of queryParts) {
       const statement = part.trim();
       if (statement.startsWith("dataset")) {
@@ -55,9 +65,10 @@ export class QueryParser {
         query.sort = [];
         for (const sort of sorts) {
           const stmtParts = sort.trim().split(" ");
-          if (stmtParts.length === 2) {
+          if (stmtParts.length === 1 || stmtParts.length === 2) {
             const field = stmtParts[0];
-            const direction = stmtParts[1].toLowerCase();
+            const direction =
+              stmtParts.length === 2 ? stmtParts[1].toLowerCase() : "asc";
 
             if (direction === "asc" || direction === "desc") {
               query.sort.push({
@@ -71,6 +82,51 @@ export class QueryParser {
             throw new Error(`Invalid sort statement: '${sort}'`);
           }
         }
+      } else if (statement.startsWith("dedup ")) {
+        const dedup = statement.replace("dedup", "").trim();
+        const stmtParts = dedup.split(" ");
+
+        let fields = [];
+        let sortBy = undefined;
+        let sortDirection = undefined;
+
+        // Find the position of 'by' if it exists
+        const byIndex = stmtParts.indexOf("by");
+
+        if (byIndex !== -1) {
+          // Extract fields before 'by'
+          fields = stmtParts
+            .slice(0, byIndex)
+            .map((field) => field.replace(/,$/, ""));
+
+          // Validate and assign sortBy and sortDirection if they exist
+          if (stmtParts.length > byIndex + 2) {
+            sortBy = stmtParts[byIndex + 1];
+            sortDirection = stmtParts[byIndex + 2].toLowerCase();
+
+            if (sortDirection !== "asc" && sortDirection !== "desc") {
+              throw new Error(`Invalid dedup direction: '${sortDirection}'`);
+            }
+          } else {
+            throw new Error("sortBy and sortDirection expected after 'by'");
+          }
+        } else {
+          // All parts are considered fields if 'by' is not present
+          fields = stmtParts;
+        }
+
+        // Validate that fields are present
+        if (fields.length === 0) {
+          throw new Error("No fields specified for dedup");
+        }
+
+        fields = fields.map((f) => f.trim().replace(/,$/, ""));
+
+        query.dedup = {
+          fields,
+          sortBy,
+          sortDirection: sortDirection,
+        };
       } else if (statement.startsWith("fields ")) {
         const fields = statement.split(",");
         fields[0] = fields[0].replace("fields", "").trim();

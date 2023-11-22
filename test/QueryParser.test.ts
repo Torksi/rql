@@ -11,6 +11,17 @@ describe("Test query validation", () => {
     expect(parsedQuery.filters[1].blocks.length).toBe(1);
   });
 
+  it("should validate the full query", () => {
+    const query = `dataset = sales_invoices \n#Limit results to 25\n| limit 25 | filter amount > 1000 or dueDate < date() | filter canceled = false and customer contains "Jane Doe" and notes not contains "Need to order special tools" | sort createdAt asc, amount desc | fields name, createdAt, paid as isPaid, canceled, amount, dueDate, notes`;
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.dataset).toBe("sales_invoices");
+    expect(parsedQuery.fields.length).toBe(7);
+    expect(parsedQuery.limit).toBe(25);
+    expect(parsedQuery.filters.length).toBe(2);
+    expect(parsedQuery.filters[0].blocks.length).toBe(2);
+    expect(parsedQuery.filters[1].blocks.length).toBe(1);
+  });
+
   it("should fail with invalid sort direction", () => {
     const query = "dataset = sales_invoices | sort createdAt asd";
     expect(() => QueryParser.parseQuery(query)).toThrow(
@@ -113,6 +124,55 @@ describe("Test 'sort' statement", () => {
     if (parsedQuery.sort !== null) {
       expect(parsedQuery.sort[0].field).toBe("createdAt");
     }
+  });
+});
+
+describe("Test 'dedup' statement", () => {
+  it("should return the correct dedup direction", () => {
+    const query = "dataset = sales_invoices | dedup customer";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.dedup).not.toBe(null);
+    if (parsedQuery.dedup !== null) {
+      expect(parsedQuery.dedup.sortDirection).toBe(undefined);
+    }
+  });
+
+  it("should return the correct dedup field", () => {
+    const query = "dataset = sales_invoices | dedup customer by createdAt desc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.dedup).not.toBe(null);
+    if (parsedQuery.dedup !== null) {
+      expect(parsedQuery.dedup.fields[0]).toBe("customer");
+    }
+  });
+
+  it("should return the correct dedup field", () => {
+    const query = "dataset = sales_invoices | dedup customer, createdAt";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.dedup).not.toBe(null);
+    if (parsedQuery.dedup !== null) {
+      expect(parsedQuery.dedup.fields[0]).toBe("customer");
+    }
+  });
+
+  it("should fail with invalid dedup sort direction", () => {
+    const query = "dataset = sales_invoices | dedup customer by createdAt test";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid dedup direction: 'test'"
+    );
+  });
+
+  it("should fail with missing dedup sort direction", () => {
+    const query = "dataset = sales_invoices | dedup customer by createdAt";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "sortBy and sortDirection expected after 'by'"
+    );
+  });
+  it("should fail with missing dedup fields", () => {
+    const query = "dataset = sales_invoices | dedup by createdAt asc";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "No fields specified for dedup"
+    );
   });
 });
 

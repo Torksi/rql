@@ -30,14 +30,15 @@
 
 # Syntax Guide
 
-The query consists of multiple statements separated by the pipe (`|`) character. The statements are case-sensitive, and must be written in lowercase. The order of the statements doesn't matter as they will automatically be executed in the following order:
+The query consists of multiple statements separated by the pipe (`|`) character. The statements are case-sensitive, and must be written in lowercase. The query lines can be commented out with `#`. The order of the statements doesn't matter as they will automatically be executed in the following order:
 
 1. `fields`
-2. `alter`
-3. `filter`
-4. `sort`
-5. `limit`
-6. (`dataset`)
+1. `alter`
+1. `filter`
+1. `sort`
+1. `dedup`
+1. `limit`
+1. (`dataset`)
 
 ## Operators
 
@@ -114,6 +115,8 @@ The `alter` statement is used to create new or overwrite existing fields in the 
 | uppercase | `uppercase(<field>)`                     | Converts string to uppercase |
 | lowercase | `lowercase(<field>)`                     | Converts string to lowercase |
 | substring | `substring(<field>, <start>, <end>)`     | Extracts substring           |
+| coalesce  | `coalesce(<field1>, <field2>, ...)`      | Returns first non-null value |
+| incidr    | `incidr(<field>, <cidr>)`                | Returns true if IP in CIDR   |
 
 ### Examples
 
@@ -162,6 +165,25 @@ dataset = users
 | fields name, age
 ```
 
+## dedup
+
+### Syntax
+
+`dedup <field1>[,<field2>, ...] by asc | desc <field>`
+
+### Description
+
+The `dedup` statement is used to remove duplicate records based on field(s). By default it returns the first record, but you can specify the direction of the dedup using the `asc` (ascending) or `desc` (descending) keywords and some other field, such as timestamp to return chronologically latest record.
+
+### Examples
+
+```
+# Returns all the latest unique username + deviceName sign-in combinations
+dataset = signInLogs
+| filter location.country = "GB"
+| dedup username, deviceName by _time desc
+```
+
 ## limit
 
 ### Syntax
@@ -183,6 +205,15 @@ dataset = logins
 ```
 
 # Changelog
+
+## 1.4.0 (2023-11-22)
+
+- Added support for `dedup` statement
+- Added support for line comments (starting a line with `#`)
+- Added nested field support for `alter` statement
+- Arithmetic `alter` functions now handle invalid fields as 0 instead of NaN
+- Added `coalesce` function to `alter` statement
+- Added `incidr` function to `alter` statement
 
 ## 1.3.2 (2023-11-21)
 

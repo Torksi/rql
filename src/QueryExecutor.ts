@@ -3,6 +3,7 @@ import dynamicSort from "./dynamicSort";
 import ipRangeCheck from "ip-range-check";
 import { Query, QueryAlter } from "./types";
 import { Client } from "@elastic/elasticsearch";
+import dynamicField from "./dynamicField";
 
 export class QueryExecutor {
   /**
@@ -55,20 +56,7 @@ export class QueryExecutor {
 
             for (const expression of block.expressions) {
               const { field, operator, value } = expression;
-              const fieldPath = field.split(".");
-              let rowValue = row;
-
-              // Evaluate the rowValue based on fieldPath
-              for (const path of fieldPath) {
-                if (
-                  rowValue == null ||
-                  !Object.prototype.hasOwnProperty.call(rowValue, path)
-                ) {
-                  rowValue = null;
-                  break;
-                }
-                rowValue = rowValue[path];
-              }
+              const rowValue = dynamicField(field, row);
 
               // If rowValue is null, the expression fails
               if (rowValue === null) {
@@ -171,6 +159,58 @@ export class QueryExecutor {
       results = results.sort(dynamicSort(sorts));
     }
 
+    // Dedup
+    if (query.dedup && query.dedup !== null) {
+      const { fields, sortBy, sortDirection } = query.dedup;
+
+      // Validate all dedup fields
+      for (const field of fields) {
+        if (
+          query.fields &&
+          query.fields.length > 0 &&
+          query.fields.find(
+            (f) =>
+              (f.name === field && f.alias === undefined) ||
+              (f.alias === field && f.alias !== undefined)
+          ) === undefined
+        ) {
+          throw new Error(`Invalid dedup field: '${field}'`);
+        }
+      }
+
+      const dedupedResults = new Map();
+
+      for (const row of results) {
+        const compositeKeyParts = fields.map((field) => {
+          const fieldValue = dynamicField(field, row);
+          return fieldValue !== null ? fieldValue.toString() : "";
+        });
+
+        if (compositeKeyParts.includes("")) {
+          throw new Error(
+            `Invalid dedup field: '${fields[compositeKeyParts.indexOf("")]}'.`
+          );
+        }
+
+        const compositeKey = compositeKeyParts.join("|");
+
+        // Check if the record needs to be updated based on sortDirection
+        if (!dedupedResults.has(compositeKey) || (sortBy && sortDirection)) {
+          const existingRow = dedupedResults.get(compositeKey);
+          if (
+            !existingRow ||
+            (sortDirection === "desc" &&
+              dynamicField(sortBy || "", row) >
+                dynamicField(sortBy || "", existingRow))
+          ) {
+            dedupedResults.set(compositeKey, row);
+          }
+        }
+      }
+
+      results = Array.from(dedupedResults.values());
+    }
+
     // Limit
     if (query.limit) {
       results = results.slice(0, query.limit);
@@ -228,64 +268,65 @@ export class QueryExecutor {
 
   private static executeAlter(alter: QueryAlter, data: any[]) {
     try {
-      if (alter.func === "lowercase") {
-        data.map((row) => {
-          row[alter.field] = row[alter.parameters[0]].toLowerCase();
-        });
-      } else if (alter.func === "uppercase") {
-        data.map((row) => {
-          row[alter.field] = row[alter.parameters[0]].toUpperCase();
-        });
-      } else if (alter.func === "substring") {
-        data.map((row) => {
-          row[alter.field] = row[alter.parameters[0]].substring(
-            Number(alter.parameters[1]),
-            Number(alter.parameters[2])
-          );
-        });
-      } else if (alter.func === "multiply") {
-        if (!isNaN(Number(alter.parameters[1]))) {
-          data.map((row) => {
+      data.map((row) => {
+        const fieldValue = dynamicField(alter.parameters[0], row);
+
+        switch (alter.func) {
+          case "lowercase":
+            row[alter.field] = fieldValue.toLowerCase();
+            break;
+          case "uppercase":
+            row[alter.field] = fieldValue.toUpperCase();
+            break;
+          case "substring":
+            row[alter.field] = fieldValue.substring(
+              Number(alter.parameters[1]),
+              Number(alter.parameters[2])
+            );
+            break;
+          case "multiply":
             row[alter.field] =
-              row[alter.parameters[0]] * Number(alter.parameters[1]);
-          });
-        } else {
-          data.map((row) => {
+              fieldValue *
+              (isNaN(Number(alter.parameters[1]))
+                ? Number(dynamicField(alter.parameters[1], row))
+                : Number(alter.parameters[1]));
+            break;
+          case "add":
             row[alter.field] =
-              row[alter.parameters[0]] * Number(row[alter.parameters[1]]);
-          });
+              fieldValue +
+              (isNaN(Number(alter.parameters[1]))
+                ? Number(dynamicField(alter.parameters[1], row))
+                : Number(alter.parameters[1]));
+            break;
+          case "subtract":
+            row[alter.field] =
+              fieldValue -
+              (isNaN(Number(alter.parameters[1]))
+                ? Number(dynamicField(alter.parameters[1], row))
+                : Number(alter.parameters[1]));
+            break;
+          case "coalesce":
+            for (const param of alter.parameters) {
+              if (dynamicField(param, row) !== null) {
+                row[alter.field] = dynamicField(param, row);
+                break;
+              }
+            }
+            if (row[alter.field] === undefined) {
+              row[alter.field] = null;
+            }
+            break;
+          case "incidr":
+            row[alter.field] = ipRangeCheck(fieldValue, alter.parameters[1]);
+            break;
+          default:
+            throw new Error(
+              `Invalid alter statement: '${
+                alter.func
+              }' with parameters '${alter.parameters.join(", ")}'`
+            );
         }
-      } else if (alter.func === "add") {
-        if (!isNaN(Number(alter.parameters[1]))) {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] + Number(alter.parameters[1]);
-          });
-        } else {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] + Number(row[alter.parameters[1]]);
-          });
-        }
-      } else if (alter.func === "subtract") {
-        if (!isNaN(Number(alter.parameters[1]))) {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] - Number(alter.parameters[1]);
-          });
-        } else {
-          data.map((row) => {
-            row[alter.field] =
-              row[alter.parameters[0]] - Number(row[alter.parameters[1]]);
-          });
-        }
-      } else {
-        throw new Error(
-          `Invalid alter statement: '${
-            alter.func
-          }' with parameters '${alter.parameters.join(", ")}'`
-        );
-      }
+      });
     } catch (e) {
       throw new Error(
         `Invalid alter statement: '${
