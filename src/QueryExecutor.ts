@@ -59,22 +59,45 @@ export class QueryExecutor {
               const rowValue = dynamicField(field, row);
 
               // If rowValue is null, the expression fails
-              if (rowValue === null) {
+              if (
+                rowValue === null &&
+                value.toString().toLowerCase() !== "null" &&
+                value.toString().toLowerCase() !== "undefined"
+              ) {
                 blockResult = false;
                 break; // Stop evaluating this block
               }
 
-              switch (operator) {
-                case "equals":
+              operatorSwitch: switch (operator) {
+                case "equals": {
+                  if (
+                    value.toString().toLowerCase() === "null" ||
+                    value.toString().toLowerCase() === "undefined"
+                  ) {
+                    blockResult = rowValue === null || rowValue === undefined;
+                    break operatorSwitch;
+                  }
+
                   blockResult =
                     rowValue === value ||
                     rowValue.toString() === value.toString();
                   break;
-                case "notEquals":
+                }
+
+                case "notEquals": {
+                  if (
+                    value.toString().toLowerCase() === "null" ||
+                    value.toString().toLowerCase() === "undefined"
+                  ) {
+                    blockResult = rowValue !== null && rowValue !== undefined;
+                    break operatorSwitch;
+                  }
+
                   blockResult =
                     rowValue !== value ||
                     rowValue.toString() !== value.toString();
                   break;
+                }
                 case "contains":
                   blockResult =
                     rowValue.includes(value) ||

@@ -243,6 +243,10 @@ dataset = logins
 
 # Changelog
 
+## 1.5.1 (2023-11-30)
+
+- Added support for null values in `filter` statement
+
 ## 1.5.0 (2023-11-22)
 
 - Added support for `comp` statement

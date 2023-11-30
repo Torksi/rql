@@ -80,6 +80,7 @@ const testData3 = [
     device: "mac-1",
     createdAt: "2022-05-01",
     location: "US",
+    role: undefined,
   },
   {
     id: 2,
@@ -87,6 +88,7 @@ const testData3 = [
     device: "mac-1",
     createdAt: "2022-02-01",
     location: "US",
+    role: "user",
   },
   {
     id: 3,
@@ -94,12 +96,14 @@ const testData3 = [
     device: "win-1",
     createdAt: "2022-05-01",
     location: "GB",
+    role: "admin",
   },
   {
     id: 4,
     username: "bob.builder",
     device: "win-2",
     createdAt: "2022-05-02",
+    role: null,
   },
   {
     id: 5,
@@ -173,6 +177,20 @@ describe("Test execution", () => {
 });
 
 describe("Test 'filter' statement execution", () => {
+  test("filter: equals null", () => {
+    const query = "dataset = users | filter role = null";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(3);
+  });
+
+  test("filter: not equals null", () => {
+    const query = "dataset = users | filter role != null";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(2);
+  });
+
   test("filter: not equals", () => {
     const query = "dataset = sales_invoices | filter id != 1";
     const parsedQuery = QueryParser.parseQuery(query);
