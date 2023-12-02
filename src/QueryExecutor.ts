@@ -206,27 +206,25 @@ export class QueryExecutor {
       for (const row of results) {
         const compositeKeyParts = fields.map((field) => {
           const fieldValue = dynamicField(field, row);
-          return fieldValue !== null ? fieldValue.toString() : "";
+          return fieldValue !== null && fieldValue !== undefined
+            ? fieldValue.toString()
+            : "";
         });
 
-        if (compositeKeyParts.includes("")) {
-          throw new Error(
-            `Invalid dedup field: '${fields[compositeKeyParts.indexOf("")]}'.`
-          );
-        }
+        if (!compositeKeyParts.includes("")) {
+          const compositeKey = compositeKeyParts.join("|");
 
-        const compositeKey = compositeKeyParts.join("|");
-
-        // Check if the record needs to be updated based on sortDirection
-        if (!dedupedResults.has(compositeKey) || (sortBy && sortDirection)) {
-          const existingRow = dedupedResults.get(compositeKey);
-          if (
-            !existingRow ||
-            (sortDirection === "desc" &&
-              dynamicField(sortBy || "", row) >
-                dynamicField(sortBy || "", existingRow))
-          ) {
-            dedupedResults.set(compositeKey, row);
+          // Check if the record needs to be updated based on sortDirection
+          if (!dedupedResults.has(compositeKey) || (sortBy && sortDirection)) {
+            const existingRow = dedupedResults.get(compositeKey);
+            if (
+              !existingRow ||
+              (sortDirection === "desc" &&
+                dynamicField(sortBy || "", row) >
+                  dynamicField(sortBy || "", existingRow))
+            ) {
+              dedupedResults.set(compositeKey, row);
+            }
           }
         }
       }

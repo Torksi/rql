@@ -60,42 +60,6 @@ The following operators are supported in RQL:
 
 # Statements
 
-## dataset
-
-### Syntax
-
-`dataset = <string>`
-
-### Description
-
-The `dataset` statement sets the context for the query by specifying the dataset to be processed. This statement is not processed by RQL itself but is intended for use in your application to allow differentiation between multiple datasets. This can be especially handy if your application deals with multiple data sources or tables, and you want to apply RQL operations to a specific one.
-
-### Examples
-
-```
-dataset = transaction_logs | filter transactionID = "TX1001"
-```
-
-## fields
-
-### Syntax
-
-`fields <field1> [as <alias1>], <field2> [as <alias2>], ...`
-
-### Description
-
-The `fields` statement enables you to cherry-pick the fields you're interested in from your dataset. This becomes useful when dealing with data structures having multiple fields, and you want to limit the output to only a few specific ones. If you don't specify any fields, all fields will be returned.
-
-You can optionally rename the fields in the output using the as keyword, providing an alias for the original field name.
-
-### Examples
-
-```
-dataset = customer_records
-| filter customerID = "CUST1001"
-| fields firstName as Name, emailID as Email
-```
-
 ## alter
 
 ### Syntax
@@ -164,42 +128,20 @@ dataset = logins
 | comp earliest _time as firstLogin
 ```
 
-## filter
+## dataset
 
 ### Syntax
 
-`filter <field> = <value> [and|or] <field> = <value> ...`
+`dataset = <string>`
 
 ### Description
 
-The `filter` statement is used to limit the dataset to records that match the specified criteria. You can compare fields to values using logical operators, and you can combine multiple criteria using the `and` and `or` keywords. For a list of supported operators, see the [Operators](#operators) section.
+The `dataset` statement sets the context for the query by specifying the dataset to be processed. This statement is not processed by RQL itself but is intended for use in your application to allow differentiation between multiple datasets. This can be especially handy if your application deals with multiple data sources or tables, and you want to apply RQL operations to a specific one.
 
 ### Examples
 
 ```
-dataset = users
-| filter age > 18 and email not contains "@gmail.com"
-| filter country = "Canada" or country = "Spain"
-| fields name, age, country, email
-```
-
-## sort
-
-### Syntax
-
-`sort <field> [asc|desc], <field> [asc|desc] ...`
-
-### Description
-
-The `sort` statement is used to order the results by one or more fields. You can specify the direction of the sort using the `asc` (ascending) or `desc` (descending) keywords. If no direction is specified, the data will not be sorted.
-
-### Examples
-
-```
-dataset = users
-| filter age > 18
-| sort age desc, name asc
-| fields name, age
+dataset = transaction_logs | filter transactionID = "TX1001"
 ```
 
 ## dedup
@@ -219,6 +161,45 @@ The `dedup` statement is used to remove duplicate records based on field(s). By 
 dataset = signInLogs
 | filter location.country = "GB"
 | dedup username, deviceName by _time desc
+```
+
+## fields
+
+### Syntax
+
+`fields <field1> [as <alias1>], <field2> [as <alias2>], ...`
+
+### Description
+
+The `fields` statement enables you to cherry-pick the fields you're interested in from your dataset. This becomes useful when dealing with data structures having multiple fields, and you want to limit the output to only a few specific ones. If you don't specify any fields, all fields will be returned.
+
+You can optionally rename the fields in the output using the as keyword, providing an alias for the original field name.
+
+### Examples
+
+```
+dataset = customer_records
+| filter customerID = "CUST1001"
+| fields firstName as Name, emailID as Email
+```
+
+## filter
+
+### Syntax
+
+`filter <field> = <value> [and|or] <field> = <value> ...`
+
+### Description
+
+The `filter` statement is used to limit the dataset to records that match the specified criteria. You can compare fields to values using logical operators, and you can combine multiple criteria using the `and` and `or` keywords. For a list of supported operators, see the [Operators](#operators) section.
+
+### Examples
+
+```
+dataset = users
+| filter age > 18 and email not contains "@gmail.com"
+| filter country = "Canada" or country = "Spain"
+| fields name, age, country, email
 ```
 
 ## limit
@@ -241,7 +222,31 @@ dataset = logins
 | fields country, username
 ```
 
+## sort
+
+### Syntax
+
+`sort <field> [asc|desc], <field> [asc|desc] ...`
+
+### Description
+
+The `sort` statement is used to order the results by one or more fields. You can specify the direction of the sort using the `asc` (ascending) or `desc` (descending) keywords. If no direction is specified, the data will not be sorted.
+
+### Examples
+
+```
+dataset = users
+| filter age > 18
+| sort age desc, name asc
+| fields name, age
+```
+
 # Changelog
+
+## 1.5.2 (2023-12-02)
+
+- Fixed a bug where `dedup` would not work correctly if the field was not present in the dataset
+- Improved documentation
 
 ## 1.5.1 (2023-11-30)
 

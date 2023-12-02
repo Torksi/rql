@@ -492,6 +492,16 @@ describe("Test 'dedup' statement execution", () => {
     expect(result[2].username).toBe("bob.builder");
   });
 
+  test("dedup: default", () => {
+    const query = "dataset = signInLogs | dedup role";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+
+    expect(result.length).toBe(2);
+    expect(result[0].username).toBe("john.doe");
+    expect(result[1].username).toBe("jane.doe");
+  });
+
   test("dedup: asc", () => {
     const query = "dataset = signInLogs | dedup username by createdAt asc";
     const parsedQuery = QueryParser.parseQuery(query);
@@ -521,14 +531,14 @@ describe("Test 'dedup' statement execution", () => {
     );
   });
 
-  test("dedup: invalid field", () => {
+  /*test("dedup: invalid field", () => {
     const query =
       "dataset = signInLogs| dedup username, device, location by createdAt desc";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(() => QueryExecutor.executeQuery(parsedQuery, testData3)).toThrow(
       "Invalid dedup field: 'location'"
     );
-  });
+  });*/
 });
 
 describe("Test 'comp' statement execution", () => {
