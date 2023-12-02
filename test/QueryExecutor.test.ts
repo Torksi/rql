@@ -81,6 +81,7 @@ const testData3 = [
     createdAt: "2022-05-01",
     location: "US",
     role: undefined,
+    description: " Created, 2022-05-01 ",
   },
   {
     id: 2,
@@ -438,6 +439,41 @@ describe("Test 'alter' statement execution", () => {
     expect(result[4].inLocal).toBe(false);
   });
 
+  test("alter: length", () => {
+    const query =
+      "dataset = signInLogs | alter usernameLength = length(username)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result[0].usernameLength).toBe(8);
+  });
+
+  test("alter: split", () => {
+    const query =
+      "dataset = signInLogs | alter usernameParts = split(username, .)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result[0].usernameParts.length).toBe(2);
+    expect(result[0].usernameParts[0]).toBe("john");
+  });
+
+  test("alter: trim", () => {
+    const query =
+      "dataset = signInLogs | alter description = trim(description)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result[0].description).toBe("Created, 2022-05-01");
+  });
+
+  test("alter: split & trim", () => {
+    const query =
+      "dataset = signInLogs | alter descParts = split(description, \\,) | alter descParts = trim(descParts) | alter descPartsLength = length(descParts)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result[0].descParts.length).toBe(2);
+    expect(result[0].descParts[0]).toBe("Created");
+    expect(result[0].descPartsLength).toBe(2);
+  });
+
   // Test for alter errors
 
   test("alter: invalid format", () => {
@@ -601,6 +637,23 @@ describe("Test 'comp' statement execution", () => {
     expect(result.length).toBe(1);
     expect(result[0].firstDevice).toBe("mac-1");
     expect(result[0].lastDevice).toBe("win-1");
+  });
+
+  test("comp: to_array", () => {
+    const query = "dataset = signInLogs | comp to_array device as devices";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(1);
+    expect(result[0].devices.length).toBe(3);
+  });
+
+  test("comp: to_string", () => {
+    const query = "dataset = signInLogs | comp to_string device as devices";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result.length).toBe(1);
+    expect(typeof result[0].devices).toBe("string");
+    expect(result[0].devices).toBe("mac-1, mac-1, win-1, win-2, win-1");
   });
 
   test("comp: invalid function", () => {

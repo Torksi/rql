@@ -72,16 +72,19 @@ The `alter` statement is used to create new or overwrite existing fields in the 
 
 ### Functions
 
-| Function  | Syntax                                   | Description                  |
-| --------- | ---------------------------------------- | ---------------------------- |
-| add       | `add(<field1>, <field2 OR number>)`      | Adds two values              |
-| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values             |
-| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values            |
-| uppercase | `uppercase(<field>)`                     | Converts string to uppercase |
-| lowercase | `lowercase(<field>)`                     | Converts string to lowercase |
-| substring | `substring(<field>, <start>, <end>)`     | Extracts substring           |
-| coalesce  | `coalesce(<field1>, <field2>, ...)`      | Returns first non-null value |
-| incidr    | `incidr(<field>, <cidr>)`                | Returns true if IP in CIDR   |
+| Function  | Syntax                                   | Description                                       |
+| --------- | ---------------------------------------- | ------------------------------------------------- |
+| add       | `add(<field1>, <field2 OR number>)`      | Adds two values                                   |
+| coalesce  | `coalesce(<field1>, <field2>, ...)`      | Returns first non-null value                      |
+| incidr    | `incidr(<field>, <cidr>)`                | Returns true if IP in CIDR                        |
+| length    | `length(<field>)`                        | Returns length of string                          |
+| lowercase | `lowercase(<field>)`                     | Converts string to lowercase                      |
+| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values                                 |
+| split     | `split(<field>, <delimiter>)`            | Splits string into array (`\,` to split on comma) |
+| substring | `substring(<field>, <start>, <end>)`     | Extracts substring                                |
+| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values                                  |
+| trim      | `trim(<field>)`                          | Trims whitespace from start and end               |
+| uppercase | `uppercase(<field>)`                     | Converts string to uppercase                      |
 
 ### Examples
 
@@ -117,6 +120,7 @@ The `comp` statement is used to calculate statistics for results. This function 
 | median         | Returns the median value                                      |
 | min            | Returns the minimum value                                     |
 | sum            | Returns the sum of values                                     |
+| to_array       | Returns an array of values                                    |
 
 ### Examples
 
@@ -242,6 +246,13 @@ dataset = users
 ```
 
 # Changelog
+
+## 1.5.3 (2023-12-02)
+
+- Added `to_array` function to `comp` statement
+- Added `trim` function to `alter` statement
+- Added `split` function to `alter` statement
+- Added `length` function to `alter` statement
 
 ## 1.5.2 (2023-12-02)
 

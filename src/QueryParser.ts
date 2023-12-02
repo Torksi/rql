@@ -165,7 +165,7 @@ export class QueryParser {
         query.alters.push({
           field: variableName,
           func: functionName,
-          parameters: parameters.split(",").map((param) => param.trim()),
+          parameters: parameters.split(/(?<!\\),/).map((param) => param.trim()),
         });
       } else if (statement.startsWith("comp ")) {
         const parts = statement.split(" ");

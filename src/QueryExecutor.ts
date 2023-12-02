@@ -328,6 +328,21 @@ export class QueryExecutor {
             statsRow[comp.returnField] =
               results[results.length - 1][comp.field];
             break;
+          case "to_array": {
+            const values = new Set(
+              results
+                .map((row) => dynamicField(comp.field, row))
+                .filter((value) => value !== null && value !== undefined)
+            );
+            statsRow[comp.returnField] = Array.from(values);
+            break;
+          }
+          case "to_string":
+            statsRow[comp.returnField] = results
+              .map((row) => dynamicField(comp.field, row))
+              .filter((value) => value !== null && value !== undefined)
+              .join(", ");
+            break;
           default:
             throw new Error(`Invalid comp function: '${comp.function}'`);
         }
@@ -439,6 +454,42 @@ export class QueryExecutor {
           case "incidr":
             row[alter.field] = ipRangeCheck(fieldValue, alter.parameters[1]);
             break;
+          case "split":
+            if (!fieldValue || typeof fieldValue !== "string") break;
+            row[alter.field] = fieldValue.split(
+              alter.parameters[1].replace("\\,", ",")
+            );
+            break;
+          case "trim": {
+            if (
+              !fieldValue ||
+              (typeof fieldValue !== "string" && !Array.isArray(fieldValue))
+            ) {
+              break;
+            }
+            if (Array.isArray(fieldValue)) {
+              row[alter.field] = fieldValue.map((value) => value.trim());
+            } else {
+              row[alter.field] = fieldValue.trim();
+            }
+            break;
+          }
+          case "length": {
+            if (
+              !fieldValue ||
+              (typeof fieldValue !== "string" && !Array.isArray(fieldValue))
+            ) {
+              break;
+            }
+
+            if (Array.isArray(fieldValue)) {
+              row[alter.field] = fieldValue.length;
+            } else {
+              row[alter.field] = fieldValue.toString().length;
+            }
+
+            break;
+          }
           default:
             throw new Error(
               `Invalid alter statement: '${
