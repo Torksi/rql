@@ -41,7 +41,7 @@ export class QueryParser {
     const queryLines = queryString.split("\n");
     let constructedQuery = "";
     queryLines.map((l) => {
-      if (l.startsWith("#")) {
+      if (l.startsWith("#") || l.startsWith("//")) {
         return;
       }
       constructedQuery += l;

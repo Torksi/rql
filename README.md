@@ -32,8 +32,8 @@
 
 The query consists of multiple statements separated by the pipe (`|`) character. The statements are case-sensitive, and must be written in lowercase. The query lines can be commented out with `#`. The order of the statements doesn't matter as they will automatically be executed in the following order:
 
-1. `fields`
 1. `alter`
+1. `fields`
 1. `filter`
 1. `sort`
 1. `dedup`
@@ -72,19 +72,31 @@ The `alter` statement is used to create new or overwrite existing fields in the 
 
 ### Functions
 
-| Function  | Syntax                                   | Description                                       |
-| --------- | ---------------------------------------- | ------------------------------------------------- |
-| add       | `add(<field1>, <field2 OR number>)`      | Adds two values                                   |
-| coalesce  | `coalesce(<field1>, <field2>, ...)`      | Returns first non-null value                      |
-| incidr    | `incidr(<field>, <cidr>)`                | Returns true if IP in CIDR                        |
-| length    | `length(<field>)`                        | Returns length of string                          |
-| lowercase | `lowercase(<field>)`                     | Converts string to lowercase                      |
-| multiply  | `multiply(<field1>, <field2 OR number>)` | Multiplies values                                 |
-| split     | `split(<field>, <delimiter>)`            | Splits string into array (`\,` to split on comma) |
-| substring | `substring(<field>, <start>, <end>)`     | Extracts substring                                |
-| subtract  | `subtract(<field1>, <field2 OR number>)` | Subtracts values                                  |
-| trim      | `trim(<field>)`                          | Trims whitespace from start and end               |
-| uppercase | `uppercase(<field>)`                     | Converts string to uppercase                      |
+| Function         | Syntax                                   | Description                                       |
+| ---------------- | ---------------------------------------- | ------------------------------------------------- |
+| add              | `add(<field1>, <field2 OR number>)`      | Adds two values                                   |
+| base64_decode    | `base64_decode(<field>)`                 | Decodes base64 string                             |
+| base64_encode    | `base64_encode(<field>)`                 | Encodes string to base64                          |
+| coalesce         | `coalesce(<field1>, <field2>, ...)`      | Returns first non-null value                      |
+| ceil             | `ceil(<field>)`                          | Rounds value up to nearest integer                |
+| extract_url_host | `extract_url_host(<field>)`              | Extracts host from URL                            |
+| floor            | `floor(<field>)`                         | Rounds value down to nearest integer              |
+| get              | `get(<field>)`                           | Gets value                                        |
+| get_array        | `get_array(<field>, <index>)`            | Gets value from array                             |
+| incidr           | `incidr(<field>, <cidr>)`                | Returns true if IP in CIDR                        |
+| json_parse       | `json_parse(<field>)`                    | Parses JSON string                                |
+| json_stringify   | `json_stringify(<field>)`                | Converts value to JSON string                     |
+| length           | `length(<field>)`                        | Returns length of string                          |
+| lowercase        | `lowercase(<field>)`                     | Converts string to lowercase                      |
+| multiply         | `multiply(<field1>, <field2 OR number>)` | Multiplies values                                 |
+| round            | `round(<field>)`                         | Rounds value to nearest integer                   |
+| split            | `split(<field>, <delimiter>)`            | Splits string into array (`\,` to split on comma) |
+| substring        | `substring(<field>, <start>, <end>)`     | Extracts substring                                |
+| subtract         | `subtract(<field1>, <field2 OR number>)` | Subtracts values                                  |
+| to_date          | `to_date(<field>)`                       | Converts value to date                            |
+| to_string        | `to_string(<field>)`                     | Converts value to string                          |
+| trim             | `trim(<field>)`                          | Trims whitespace from start and end               |
+| uppercase        | `uppercase(<field>)`                     | Converts string to uppercase                      |
 
 ### Examples
 
@@ -246,6 +258,20 @@ dataset = users
 ```
 
 # Changelog
+
+## 1.5.4 (2023-12-02)
+
+- Added `to_string` function to `alter` statement
+- Added `to_date` function to `alter` statement
+- Added `get` function to `alter` statement
+- Added `get_array` function to `alter` statement
+- Added `base64_encode` and `base64_decode` functions to `alter` statement
+- Added `round`, `ceil` and `floor` functions to `alter` statement
+- Added `extract_url_host` function to `alter` statement
+- Added `json_parse` and `json_stringify` function to `alter` statement
+- Changed execution order of `alter` statement to be executed before `fields` statement
+- Added support for dynamic fields in `substring` function
+- Added support for line comments starting with `//`
 
 ## 1.5.3 (2023-12-02)
 

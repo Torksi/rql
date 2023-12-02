@@ -9,6 +9,7 @@ const testData = [
     paid: false,
     canceled: false,
     amount: 900,
+    decimal: 900.45,
     dueDate: new Date("2025-12-12"),
     notes: "This is a note",
   },
@@ -66,11 +67,15 @@ const testData = [
 ];
 
 const testData2 = [
-  { id: 1, srcIp: "10.15.2.18" },
-  { id: 2, srcIp: "192.168.1.13" },
-  { id: 3, srcIp: "192.168.1.9" },
-  { id: 4, srcIp: "0:0:0:0:0:FFFF:222.1.41.9" },
-  { id: 5, srcIp: "85.25.14.92" },
+  { id: 1, srcIp: "10.15.2.18", url: "//user:password@a.b:80/path?query" },
+  { id: 2, srcIp: "192.168.1.13", url: "https://a.b/test" },
+  { id: 3, srcIp: "192.168.1.9", url: "http://a.b" },
+  {
+    id: 4,
+    srcIp: "0:0:0:0:0:FFFF:222.1.41.9",
+    url: "https://a.b/path/another",
+  },
+  { id: 5, srcIp: "85.25.14.92", url: "http://user:password@a.b:8080" },
 ];
 
 const testData3 = [
@@ -464,14 +469,64 @@ describe("Test 'alter' statement execution", () => {
     expect(result[0].description).toBe("Created, 2022-05-01");
   });
 
-  test("alter: split & trim", () => {
+  test("alter: json_parse, json_stringify", () => {
     const query =
-      "dataset = signInLogs | alter descParts = split(description, \\,) | alter descParts = trim(descParts) | alter descPartsLength = length(descParts)";
+      "dataset = signInLogs | alter locJsonStr = json_stringify(location) | alter locJson = json_parse(locJsonStr)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result[0].locJsonStr).toBe('"US"');
+    expect(result[0].locJson).toBe("US");
+  });
+
+  test("alter: extract_url_host", () => {
+    const query = "dataset = trafficLogs | alter host = extract_url_host(url)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData2);
+    result.map((r) => {
+      expect(r.host).toBe("a.b");
+    });
+  });
+
+  test("alter: split, trim, length, get_array, to_date, get, to_string", () => {
+    const query = `dataset = signInLogs 
+      | alter descParts = split(description, \\,) 
+      | alter descParts = trim(descParts) 
+      | alter descPartsLength = length(descParts) 
+      | alter firstPart = get_array(descParts, 0) 
+      | alter lastPart = get_array(descParts, -1) 
+      | alter lastPart = to_date(lastPart)
+      | alter clonedLocation = get(location)
+      | alter stringId = to_string(id)`;
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData3);
     expect(result[0].descParts.length).toBe(2);
     expect(result[0].descParts[0]).toBe("Created");
     expect(result[0].descPartsLength).toBe(2);
+    expect(result[0].firstPart).toBe("Created");
+    expect(result[0].lastPart.toISOString()).toBe("2022-05-01T00:00:00.000Z");
+    expect(result[0].clonedLocation).toBe("US");
+    expect(result[0].stringId).toBe("1");
+  });
+
+  test("alter: round, floor, ceil", () => {
+    const query =
+      "dataset = sales_invoices | filter id = 1 | alter rounded = round(decimal) | alter floored = floor(decimal) | alter ceiled = ceil(decimal)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result[0].rounded).toBe(900);
+    expect(result[0].floored).toBe(900);
+    expect(result[0].ceiled).toBe(901);
+  });
+
+  test("alter: base64", () => {
+    const query = `
+      dataset = signInLogs
+      | alter encoded = base64_encode(username)
+      | alter decoded = base64_decode(encoded)`;
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
+    expect(result[0].encoded).toBe("am9obi5kb2U=");
+    expect(result[0].decoded).toBe("john.doe");
   });
 
   // Test for alter errors
@@ -645,15 +700,6 @@ describe("Test 'comp' statement execution", () => {
     const result = QueryExecutor.executeQuery(parsedQuery, testData3);
     expect(result.length).toBe(1);
     expect(result[0].devices.length).toBe(3);
-  });
-
-  test("comp: to_string", () => {
-    const query = "dataset = signInLogs | comp to_string device as devices";
-    const parsedQuery = QueryParser.parseQuery(query);
-    const result = QueryExecutor.executeQuery(parsedQuery, testData3);
-    expect(result.length).toBe(1);
-    expect(typeof result[0].devices).toBe("string");
-    expect(result[0].devices).toBe("mac-1, mac-1, win-1, win-2, win-1");
   });
 
   test("comp: invalid function", () => {

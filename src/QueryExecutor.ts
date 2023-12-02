@@ -23,6 +23,13 @@ export class QueryExecutor {
   public static executeQuery(query: Query, data: any[]): any[] {
     let results = data;
 
+    // Alter
+    if (query.alters && query.alters.length > 0) {
+      for (const alter of query.alters) {
+        this.executeAlter(alter, results);
+      }
+    }
+
     // Fields
     if (query.fields && query.fields.length > 0) {
       results = results.map((row) => {
@@ -33,13 +40,6 @@ export class QueryExecutor {
         }
         return result;
       });
-    }
-
-    // Alter
-    if (query.alters && query.alters.length > 0) {
-      for (const alter of query.alters) {
-        this.executeAlter(alter, results);
-      }
     }
 
     // Filter
@@ -337,12 +337,6 @@ export class QueryExecutor {
             statsRow[comp.returnField] = Array.from(values);
             break;
           }
-          case "to_string":
-            statsRow[comp.returnField] = results
-              .map((row) => dynamicField(comp.field, row))
-              .filter((value) => value !== null && value !== undefined)
-              .join(", ");
-            break;
           default:
             throw new Error(`Invalid comp function: '${comp.function}'`);
         }
@@ -415,8 +409,12 @@ export class QueryExecutor {
             break;
           case "substring":
             row[alter.field] = fieldValue.substring(
-              Number(alter.parameters[1]),
-              Number(alter.parameters[2])
+              isNaN(Number(alter.parameters[1]))
+                ? Number(dynamicField(alter.parameters[1], row))
+                : Number(alter.parameters[1]),
+              isNaN(Number(alter.parameters[2]))
+                ? Number(dynamicField(alter.parameters[2], row))
+                : Number(alter.parameters[2])
             );
             break;
           case "multiply":
@@ -460,6 +458,12 @@ export class QueryExecutor {
               alter.parameters[1].replace("\\,", ",")
             );
             break;
+          case "to_string":
+            row[alter.field] = fieldValue.toString();
+            break;
+          case "to_date":
+            row[alter.field] = new Date(fieldValue);
+            break;
           case "trim": {
             if (
               !fieldValue ||
@@ -490,6 +494,73 @@ export class QueryExecutor {
 
             break;
           }
+          case "get": {
+            if (!fieldValue) {
+              row[alter.field] = null;
+              break;
+            }
+            row[alter.field] = fieldValue;
+            break;
+          }
+          case "get_array": {
+            if (!fieldValue || !Array.isArray(fieldValue)) {
+              row[alter.field] = null;
+              break;
+            }
+
+            if (alter.parameters[1] === "-1") {
+              row[alter.field] = fieldValue[fieldValue.length - 1];
+              break;
+            }
+
+            row[alter.field] = fieldValue[Number(alter.parameters[1])];
+            break;
+          }
+          case "base64_encode":
+            row[alter.field] = Buffer.from(fieldValue).toString("base64");
+            break;
+          case "base64_decode":
+            row[alter.field] = Buffer.from(fieldValue, "base64").toString(
+              "utf-8"
+            );
+            break;
+          case "round":
+            row[alter.field] = Math.round(fieldValue);
+            break;
+          case "ceil":
+            row[alter.field] = Math.ceil(fieldValue);
+            break;
+          case "floor":
+            row[alter.field] = Math.floor(fieldValue);
+            break;
+          case "extract_url_host": {
+            if (!fieldValue || typeof fieldValue !== "string") break;
+            try {
+              const url = new URL(
+                !fieldValue.match(/^http[s]?:\/\//)
+                  ? "http://" + fieldValue
+                  : fieldValue
+              );
+              row[alter.field] = url.hostname;
+            } catch (err) {
+              row[alter.field] = null;
+            }
+            break;
+          }
+          case "json_parse":
+            try {
+              row[alter.field] = JSON.parse(fieldValue);
+            } catch (err) {
+              row[alter.field] = null;
+            }
+            break;
+          case "json_stringify":
+            try {
+              row[alter.field] = JSON.stringify(fieldValue);
+            } catch (err) {
+              row[alter.field] = null;
+            }
+            break;
           default:
             throw new Error(
               `Invalid alter statement: '${
