@@ -375,9 +375,18 @@ export class QueryExecutor {
       body._source = query.fields.map((field) => field.name);
     }
 
+    // Sorting
+    if (query.sort && query.sort.length > 0) {
+      const sorts: any[] = query.sort.map((s) => {
+        return { [s.field]: { order: s.direction } };
+      });
+
+      body.sort = sorts;
+    }
+
     // TODO: Implement all other statements here too, so that the whole query can be executed on Elasticsearch.
 
-    body.size = 5000;
+    body.size = 20000; // default is 10k, but we want more
 
     let response: any;
 

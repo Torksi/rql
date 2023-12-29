@@ -259,6 +259,11 @@ dataset = users
 
 # Changelog
 
+## 1.5.5 (2023-12-29)
+
+- Added ElasticSearch sorting to prevent missing results in larger datasets
+- Changed ElasticSearch body size from 10k to 20k
+
 ## 1.5.4 (2023-12-02)
 
 - Added `to_string` function to `alter` statement
