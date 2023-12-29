@@ -259,6 +259,10 @@ dataset = users
 
 # Changelog
 
+## 1.5.7 (2023-12-29)
+
+- Changed size to 10k for ElasticSearch search
+
 ## 1.5.6 (2023-12-29)
 
 - Removed ElasticSearch query limit, using default value instead
