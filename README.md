@@ -259,6 +259,10 @@ dataset = users
 
 # Changelog
 
+## 1.5.6 (2023-12-29)
+
+- Removed ElasticSearch query limit, using default value instead
+
 ## 1.5.5 (2023-12-29)
 
 - Added ElasticSearch sorting to prevent missing results in larger datasets

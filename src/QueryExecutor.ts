@@ -386,8 +386,6 @@ export class QueryExecutor {
 
     // TODO: Implement all other statements here too, so that the whole query can be executed on Elasticsearch.
 
-    body.size = 20000; // default is 10k, but we want more
-
     let response: any;
 
     try {
