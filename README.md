@@ -259,6 +259,10 @@ dataset = users
 
 # Changelog
 
+## 1.6.3 (2024-02-10)
+
+- Hotfix for ElasticSearch scroll API not working correctly
+
 ## 1.6.2 (2024-02-10)
 
 - Changed ElasticSearch to use scroll API instead of search_after

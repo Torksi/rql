@@ -375,15 +375,6 @@ export class QueryExecutor {
       body._source = query.fields.map((field) => field.name);
     }
 
-    // Sorting
-    if (query.sort && query.sort.length > 0) {
-      const sorts: any[] = query.sort.map((s) => {
-        return { [s.field]: { order: s.direction } };
-      });
-
-      body.sort = sorts;
-    }
-
     body.size = 1000;
 
     const allResults: any[] = [];
