@@ -376,49 +376,55 @@ export class QueryExecutor {
     }
 
     // Sorting
-    /*if (query.sort && query.sort.length > 0) {
+    if (query.sort && query.sort.length > 0) {
       const sorts: any[] = query.sort.map((s) => {
         return { [s.field]: { order: s.direction } };
       });
 
       body.sort = sorts;
-    }*/
+    }
 
     body.size = 1000;
 
-    let allData: any[] = [];
-    let searchAfter = null;
+    const allResults: any[] = [];
+    let scrollId: string | undefined;
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      if (searchAfter) {
-        body.search_after = searchAfter;
+    try {
+      // Initialize the scroll
+      let response = await client.search({
+        index,
+        scroll: "1m",
+        ...body,
+      });
+
+      scrollId = response._scroll_id;
+      allResults.push(...response.hits.hits);
+
+      // Fetch results in batches
+      while (response.hits.hits.length) {
+        response = await client.scroll({
+          scroll_id: scrollId,
+          scroll: "1m",
+        });
+
+        scrollId = response._scroll_id;
+        allResults.push(...response.hits.hits);
       }
-
-      let response: any;
-
-      try {
-        response = await client.search({ index, ...body });
-      } catch (err: any) {
-        throw new Error(`Elasticsearch error: ${err.message}`);
+    } catch (err: any) {
+      throw new Error(`Elasticsearch error: ${err.message}`);
+    } finally {
+      // Close the scroll
+      if (scrollId) {
+        await client.clearScroll({ scroll_id: scrollId });
       }
-
-      const hits = response.hits.hits;
-      if (hits.length === 0) {
-        break;
-      }
-
-      allData = allData.concat(
-        hits.map((hit: any) => ({
-          _id: hit._id,
-          ...hit._source,
-        }))
-      );
-
-      searchAfter = hits[hits.length - 1].sort; // Update searchAfter for the next iteration
     }
 
-    return this.executeQuery(query, allData);
+    const data = allResults.map((hit) => ({
+      _id: hit._id,
+      ...hit._source,
+    }));
+
+    return this.executeQuery(query, data);
   }
 
   private static executeAlter(alter: QueryAlter, data: any[]) {
