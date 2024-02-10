@@ -12,6 +12,7 @@ const testData = [
     decimal: 900.45,
     dueDate: new Date("2025-12-12"),
     notes: "This is a note",
+    flags: ["LOAYLTY", "STAFF"],
   },
   {
     id: 2,
@@ -37,6 +38,7 @@ const testData = [
     dueDate: new Date("2020-01-01"),
     notes: "Need to order tools",
     uniqueNumber: "727411466252",
+    flags: ["STAFF"],
   },
   {
     id: 4,
@@ -300,6 +302,18 @@ describe("Test 'filter' statement execution", () => {
     expect(() => QueryExecutor.executeQuery(parsedQuery, testData)).toThrow(
       "Invalid regex pattern: '^[a-z'"
     );
+  });
+
+  test("filter: contains - array", () => {
+    const query = 'dataset = sales_invoices | filter flags contains "STAFF"';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+
+    const query2 = 'dataset = sales_invoices | filter flags contains "LOAYLTY"';
+    const parsedQuery2 = QueryParser.parseQuery(query2);
+    const result2 = QueryExecutor.executeQuery(parsedQuery2, testData);
+    expect(result2.length).toBe(1);
   });
 
   test("filter: multiple filters", () => {

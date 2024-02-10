@@ -45,18 +45,18 @@ The query consists of multiple statements separated by the pipe (`|`) character.
 
 The following operators are supported in RQL:
 
-| Operator     | Description                                             |
-| ------------ | ------------------------------------------------------- |
-| =, !=        | Equal, Not equal                                        |
-| >, <         | Greater than, Less than                                 |
-| >=, <=       | Greater than or equal, Less than or equal               |
-| and          | Boolean AND                                             |
-| or           | Boolean OR                                              |
-| contains     | Returns true if the specified string is contained       |
-| not contains | Returns true if the specified string is not contained   |
-| matches, ~=  | Returns true if the regex pattern matches               |
-| incidr       | Returns true if the IP address is in the CIDR range     |
-| not incidr   | Returns true if the IP address is not in the CIDR range |
+| Operator     | Description                                                             |
+| ------------ | ----------------------------------------------------------------------- |
+| =, !=        | Equal, Not equal                                                        |
+| >, <         | Greater than, Less than                                                 |
+| >=, <=       | Greater than or equal, Less than or equal                               |
+| and          | Boolean AND                                                             |
+| or           | Boolean OR                                                              |
+| contains     | Returns true if the specified value is contained in string or array     |
+| not contains | Returns true if the specified value is not contained in string or array |
+| matches, ~=  | Returns true if the regex pattern matches                               |
+| incidr       | Returns true if the IP address is in the CIDR range                     |
+| not incidr   | Returns true if the IP address is not in the CIDR range                 |
 
 # Statements
 
@@ -258,6 +258,10 @@ dataset = users
 ```
 
 # Changelog
+
+## 1.6.0 (2024-02-10)
+
+- Changed ElasticSearch to use `search_after` instead of hard coded body size
 
 ## 1.5.7 (2023-12-29)
 

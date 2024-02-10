@@ -384,24 +384,41 @@ export class QueryExecutor {
       body.sort = sorts;
     }
 
-    // TODO: Implement all other statements here too, so that the whole query can be executed on Elasticsearch.
+    body.size = 1000;
 
-    body.size = 10000;
+    let allData: any[] = [];
+    let searchAfter = null;
 
-    let response: any;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (searchAfter) {
+        body.search_after = searchAfter;
+      }
 
-    try {
-      response = await client.search({ index, ...body });
-    } catch (err: any) {
-      throw new Error(`Elasticsearch error: ${err.message}`);
+      let response: any;
+
+      try {
+        response = await client.search({ index, ...body });
+      } catch (err: any) {
+        throw new Error(`Elasticsearch error: ${err.message}`);
+      }
+
+      const hits = response.hits.hits;
+      if (hits.length === 0) {
+        break;
+      }
+
+      allData = allData.concat(
+        hits.map((hit: any) => ({
+          _id: hit._id,
+          ...hit._source,
+        }))
+      );
+
+      searchAfter = hits[hits.length - 1].sort; // Update searchAfter for the next iteration
     }
 
-    const data = response.hits.hits.map((hit: any) => ({
-      _id: hit._id,
-      ...hit._source,
-    }));
-
-    return this.executeQuery(query, data); // Once we have all statements implemented, we can remove this line as the result should already be parsed.
+    return this.executeQuery(query, allData);
   }
 
   private static executeAlter(alter: QueryAlter, data: any[]) {
