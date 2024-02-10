@@ -259,6 +259,10 @@ dataset = users
 
 # Changelog
 
+## 1.6.1 (2024-02-10)
+
+- Disabled sorting for ElasticSearch queries to fix issue with Elastic pre-document sorting
+
 ## 1.6.0 (2024-02-10)
 
 - Changed ElasticSearch to use `search_after` instead of hard coded body size
