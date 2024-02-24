@@ -34,6 +34,7 @@ The query consists of multiple statements separated by the pipe (`|`) character.
 
 1. `alter`
 1. `fields`
+1. `config`
 1. `filter`
 1. `sort`
 1. `dedup`
@@ -142,6 +143,30 @@ dataset = logins
 | comp count username as totalUsers
 | comp count_distinct username as distinctUsers
 | comp earliest _time as firstLogin
+```
+
+## config
+
+### Syntax
+
+`config <option> = <value>`
+
+### Description
+
+The `config` statement is used to set various options for the query execution. RQL comes with built-in options, but you can also add your own custom options for your application.
+
+### Options
+
+| Option         | Description                                                                     | Default |
+| -------------- | ------------------------------------------------------------------------------- | ------- |
+| case_sensitive | Determine whether values are evaluated as case sensitive in `filter` statements | true    |
+
+### Examples
+
+```
+dataset = users
+| config case_sensitive = false
+| filter name contains "john"
 ```
 
 ## dataset
@@ -258,6 +283,12 @@ dataset = users
 ```
 
 # Changelog
+
+## 1.7.0 (2024-02-24)
+
+- Added support for `config` statement
+- Added case-sensitive option to `filter` statement via `config` statement
+- Added support for single quotes in `filter` statement
 
 ## 1.6.3 (2024-02-10)
 

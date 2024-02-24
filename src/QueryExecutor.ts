@@ -42,6 +42,16 @@ export class QueryExecutor {
       });
     }
 
+    // Config
+    let caseSensitive = true;
+    if (query.config && query.config.length > 0) {
+      for (const config of query.config) {
+        if (config.key === "case_sensitive") {
+          caseSensitive = config.value === "true";
+        }
+      }
+    }
+
     // Filter
     if (query.filters && query.filters.length > 0) {
       results = results.filter((row) => {
@@ -78,6 +88,14 @@ export class QueryExecutor {
                     break operatorSwitch;
                   }
 
+                  if (!caseSensitive) {
+                    blockResult =
+                      rowValue === value ||
+                      rowValue.toString().toLowerCase() ===
+                        value.toString().toLowerCase();
+                    break;
+                  }
+
                   blockResult =
                     rowValue === value ||
                     rowValue.toString() === value.toString();
@@ -93,17 +111,45 @@ export class QueryExecutor {
                     break operatorSwitch;
                   }
 
+                  if (!caseSensitive) {
+                    blockResult =
+                      rowValue !== value &&
+                      rowValue.toString().toLowerCase() !==
+                        value.toString().toLowerCase();
+                    break;
+                  }
+
                   blockResult =
                     rowValue !== value ||
                     rowValue.toString() !== value.toString();
                   break;
                 }
                 case "contains":
+                  if (!caseSensitive) {
+                    blockResult =
+                      rowValue.includes(value) ||
+                      rowValue
+                        .toString()
+                        .toLowerCase()
+                        .includes(value.toString().toLowerCase());
+                    break;
+                  }
+
                   blockResult =
                     rowValue.includes(value) ||
                     rowValue.toString().includes(value.toString());
                   break;
                 case "notContains":
+                  if (!caseSensitive) {
+                    blockResult =
+                      !rowValue.includes(value) &&
+                      !rowValue
+                        .toString()
+                        .toLowerCase()
+                        .includes(value.toString().toLowerCase());
+                    break;
+                  }
+
                   blockResult =
                     !rowValue.includes(value) ||
                     !rowValue.toString().includes(value.toString());

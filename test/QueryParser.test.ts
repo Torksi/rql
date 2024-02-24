@@ -240,6 +240,15 @@ describe("Test 'filter' statement", () => {
     );
   });
 
+  it("should return the correct filter value", () => {
+    const query =
+      "dataset = sales_invoices | filter amount > 1000 and notes not contains 'Tool tips'";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.filters[0].blocks[0].expressions[1].value).toBe(
+      "Tool tips"
+    );
+  });
+
   it("should fail with invalid filter expression", () => {
     const query = "dataset = sales_invoices | filter amount > 1000 and notes";
     expect(() => QueryParser.parseQuery(query)).toThrow(
@@ -260,6 +269,36 @@ describe("Test 'filter' statement", () => {
       "dataset = sales_invoices | filter amount > 1000 and notes equalss 'man'";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid filter expression: 'notes equalss 'man''"
+    );
+  });
+});
+
+describe("Test 'config' statement", () => {
+  it("should return the correct config", () => {
+    const query = "dataset = x | config timezone = 'America/New_York'";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.config[0].key).toBe("timezone");
+    expect(parsedQuery.config[0].value).toBe("America/New_York");
+  });
+
+  it("should fail with invalid config", () => {
+    const query = "config timezone =";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid config statement: 'config timezone ='"
+    );
+  });
+
+  it("should fail with invalid config", () => {
+    const query = "config timezone = '";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid config statement: 'config timezone = ''"
+    );
+  });
+
+  it("should fail with invalid config", () => {
+    const query = "config timezone";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid config statement: 'config timezone'"
     );
   });
 });

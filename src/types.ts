@@ -51,6 +51,11 @@ export interface QueryAlter {
   parameters: string[];
 }
 
+export interface QueryConfig {
+  key: string;
+  value: string;
+}
+
 export interface Query {
   dataset: string;
   fields: QueryField[];
@@ -58,6 +63,7 @@ export interface Query {
   alters: QueryAlter[];
   sort: QuerySort[] | null;
   comp: QueryComp[];
+  config: QueryConfig[];
   dedup: QueryDedup | null;
   limit: number;
   returnType: "records" | "stats";

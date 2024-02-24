@@ -206,6 +206,38 @@ describe("Test 'filter' statement execution", () => {
     expect(result.length).toBe(4);
   });
 
+  test("filter: not equals / case-insensitive", () => {
+    const query =
+      "dataset = sales_invoices | config case_sensitive = false | filter customer != 'john doe' | filter id != 2";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: equals / case-insensitive", () => {
+    const query =
+      "dataset = sales_invoices | config case_sensitive = false | filter customer = 'john doe'";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: contains / case-insensitive", () => {
+    const query =
+      "dataset = sales_invoices | config case_sensitive = false | filter customer contains 'doe'";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(3);
+  });
+
+  test("filter: not contains / case-insensitive", () => {
+    const query =
+      "dataset = sales_invoices | config case_sensitive = false | filter customer not contains 'doe'";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
   test("filter: less than", () => {
     const query = "dataset = sales_invoices | filter amount < 201";
     const parsedQuery = QueryParser.parseQuery(query);
@@ -244,6 +276,14 @@ describe("Test 'filter' statement execution", () => {
   test("filter: not incidr", () => {
     const query =
       "dataset = network_logs | filter srcIp not incidr 192.168.1.0/24";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData2);
+    expect(result.length).toBe(3);
+  });
+
+  test("filter: not incidr with quotes", () => {
+    const query =
+      "dataset = network_logs | filter srcIp 'not incidr' 192.168.1.0/24";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, testData2);
     expect(result.length).toBe(3);

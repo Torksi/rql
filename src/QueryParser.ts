@@ -32,6 +32,7 @@ export class QueryParser {
       filters: [],
       alters: [],
       comp: [],
+      config: [],
       sort: null,
       dedup: null,
       limit: 0,
@@ -189,6 +190,28 @@ export class QueryParser {
         });
 
         query.returnType = "stats";
+      } else if (statement.startsWith("config ")) {
+        // | config case_sensitive = true
+        const config = statement.substring(6).trim();
+        const parts = config.match(
+          /(['"][^'"]+['"]|\S+)\s*(=)\s*(['"][^'"]+['"]|\S+)/i
+        );
+
+        if (!parts) {
+          throw new Error(`Invalid config statement: '${statement}'`);
+        }
+
+        const key = parts[1].replace(/^['"]|['"]$/g, "");
+        const value = parts[3].replace(/^['"]|['"]$/g, "");
+
+        if (!key || !value) {
+          throw new Error(`Invalid config statement: '${statement}'`);
+        }
+
+        query.config.push({
+          key: key.trim(),
+          value: value.trim(),
+        });
       } else {
         throw new Error(`Invalid statement: '${statement}'`);
       }
@@ -231,21 +254,21 @@ export class QueryParser {
       "not incidr",
     ];
 
-    // The operator capturing group now treats "not contains" as a single operator
     const match = expression.match(
-      /("[^"]+"|\S+)\s*(=|!=|~=|contains|matches|"not contains"|incidr|"not incidr"|<=|>=|<|>)\s*("[^"]+"|\S+)/i
+      /(['"][^'"]+['"]|\S+)\s*(=|!=|~=|contains|matches|'not contains'|"not contains"|incidr|'not incidr'|"not incidr"|<=|>=|<|>)\s*(['"][^'"]+['"]|\S+)/i
     );
     if (!match) {
       throw new Error(`Invalid filter expression: '${expression}'`);
     }
 
-    let field = match[1].replace(/"/g, "");
-    let operator = match[2].replace(/"/g, "");
+    let field = match[1].replace(/['"]/g, "");
+    let operator = match[2].replace(/['"]/g, "");
+
     if (field === "not") {
-      field = expression.split(" ")[0].replace(/"/g, "");
+      field = expression.split(" ")[0].replace(/['"]/g, "");
       operator = `not ${operator}`;
     }
-    const value = match[3].replace(/"/g, "");
+    const value = match[3].replace(/['"]/g, "");
 
     if (!operators.includes(operator)) {
       // This should never happen as the regex should catch this
