@@ -315,10 +315,6 @@ Compared to the `filter` statement, the `search` statement searches all fields i
 dataset = users
 | search "john"
 | fields name, email
-
-// find all users with any field ending in ".com"
-dataset = users
-| search .*\.com$
 ```
 
 ## sort
@@ -345,7 +341,7 @@ dataset = users
 ## 2.0.0 (2024-XX-XX)
 
 - Added better functionality for `search` statement
-- Added group by option for `comp` statement via `config` statement
+- Added grouping option for `comp` statement via `config` statement
 - Refactored codebase to improve maintainability and readability
 
 ## 1.8.0 (2024-04-07)

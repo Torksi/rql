@@ -50,5 +50,10 @@
   },
   "peerDependencies": {
     "@elastic/elasticsearch": "^8.8.1"
+  },
+  "peerDependenciesMeta": {
+    "@elastic/elasticsearch": {
+      "optional": true
+    }
   }
 }
