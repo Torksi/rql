@@ -25,7 +25,33 @@
    const query =
      'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email, age | sort age desc | limit 10';
    const parsedQuery = QueryParser.parseQuery(query); // This will validate the query and convert it into a JS object
-   const result = QueryExecutor.executeQuery(parsedQuery, dataset); // This will execute the query against the dataset
+   const result = QueryExecutor.executeQuery(parsedQuery, data); // This will execute the query against the dataset
+   ```
+
+## ElasticSearch integration (WIP)
+
+RQL can be used to generate queries for ElasticSearch. The `QueryExecutor` class has built-in support for ElasticSearch, so you can execute RQL queries directly against an ElasticSearch index. Here's an example of how to use RQL with ElasticSearch:
+
+1. Install the ElasticSearch client:
+   - `npm install @elastic/elasticsearch`
+   - `yarn add @elastic/elasticsearch`
+2. Parse query and execute it against ElasticSearch
+
+   ```js
+   import { QueryParser, QueryExecutor } from "@ruhisfi/rql";
+
+   const query =
+     'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email, age | sort age desc | limit 10';
+   const parsedQuery = QueryParser.parseQuery(query); // This will validate the query and convert it into a JS object
+
+   const result = QueryExecutor.executeElasticQuery(
+     elasticSearchClient, // ElasticSearch Client from @elastic/elasticsearch
+     "example_data", // ElasticSearch index
+     parsedQuery //
+   ).then((res) => {
+     console.log(`Found ${res.length} results`);
+     console.log(`Results:`, res);
+   });
    ```
 
 # Syntax Guide
@@ -139,11 +165,17 @@ The `comp` statement is used to calculate statistics for results. This function 
 ### Examples
 
 ```
+// Returns the total number of users, the number of distinct users and the first login time in the USA
 dataset = logins
 | filter country = "USA"
 | comp count username as totalUsers
 | comp count_distinct username as distinctUsers
 | comp earliest _time as firstLogin
+
+// Returns the amount of logins per country
+dataset = logins
+| config grouping = country
+| comp count correlationId as logins
 ```
 
 ## config
@@ -161,6 +193,7 @@ The `config` statement is used to set various options for the query execution. R
 | Option         | Description                                                                     | Default |
 | -------------- | ------------------------------------------------------------------------------- | ------- |
 | case_sensitive | Determine whether values are evaluated as case sensitive in `filter` statements | true    |
+| grouping       | Group results by a field in `comp` statement                                    | ''      |
 
 ### Examples
 
@@ -273,7 +306,7 @@ dataset = logins
 ### Description
 
 The `search` statement is used to limit the dataset to records that match the specified query. This is useful for full-text search or searching for specific patterns in the data.
-Compared to the `filter` statement, the `search` statement searches all fields in the dataset. The query supports regex.
+Compared to the `filter` statement, the `search` statement searches all fields in the dataset.
 
 ### Examples
 
@@ -308,6 +341,12 @@ dataset = users
 ```
 
 # Changelog
+
+## 2.0.0 (2024-XX-XX)
+
+- Added better functionality for `search` statement
+- Added group by option for `comp` statement via `config` statement
+- Refactored codebase to improve maintainability and readability
 
 ## 1.8.0 (2024-04-07)
 
