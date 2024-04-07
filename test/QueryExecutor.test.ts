@@ -328,6 +328,21 @@ describe("Test 'filter' statement execution", () => {
     expect(result.length).toBe(2);
   });
 
+  test("filter: matches", () => {
+    const query =
+      'dataset = sales_invoices | filter customer matches "^\\w+\\s+D\\w*s"';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(2);
+  });
+
+  test("filter: matches", () => {
+    const query = 'dataset = sales_invoices | filter notes matches "is not"';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, testData);
+    expect(result.length).toBe(1);
+  });
+
   test("filter: matches - ~= alias", () => {
     const query =
       "dataset = sales_invoices | filter customer ~= ^\\w+\\s+D\\w*s";

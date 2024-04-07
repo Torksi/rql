@@ -56,6 +56,10 @@ export interface QueryConfig {
   value: string;
 }
 
+export interface QuerySearch {
+  value: string;
+}
+
 export interface Query {
   dataset: string;
   fields: QueryField[];
@@ -65,6 +69,7 @@ export interface Query {
   comp: QueryComp[];
   config: QueryConfig[];
   dedup: QueryDedup | null;
+  search: QuerySearch | null;
   limit: number;
   returnType: "records" | "stats";
 }

@@ -33,6 +33,7 @@ export class QueryParser {
       alters: [],
       comp: [],
       config: [],
+      search: null,
       sort: null,
       dedup: null,
       limit: 0,
@@ -212,6 +213,9 @@ export class QueryParser {
           key: key.trim(),
           value: value.trim(),
         });
+      } else if (statement.startsWith("search ")) {
+        const search = statement.substring(7).trim();
+        query.search = { value: search };
       } else {
         throw new Error(`Invalid statement: '${statement}'`);
       }

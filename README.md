@@ -35,6 +35,7 @@ The query consists of multiple statements separated by the pipe (`|`) character.
 1. `alter`
 1. `fields`
 1. `config`
+1. `search`
 1. `filter`
 1. `sort`
 1. `dedup`
@@ -263,6 +264,30 @@ dataset = logins
 | fields country, username
 ```
 
+## search
+
+### Syntax
+
+`search <query>`
+
+### Description
+
+The `search` statement is used to limit the dataset to records that match the specified query. This is useful for full-text search or searching for specific patterns in the data.
+Compared to the `filter` statement, the `search` statement searches all fields in the dataset. The query supports regex.
+
+### Examples
+
+```
+// find all users with "john" in their name or email
+dataset = users
+| search "john"
+| fields name, email
+
+// find all users with any field ending in ".com"
+dataset = users
+| search .*\.com$
+```
+
 ## sort
 
 ### Syntax
@@ -283,6 +308,10 @@ dataset = users
 ```
 
 # Changelog
+
+## 1.8.0 (2024-04-07)
+
+- Added support for `search` statement
 
 ## 1.7.0 (2024-02-24)
 

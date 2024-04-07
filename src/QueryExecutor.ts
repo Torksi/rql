@@ -167,9 +167,16 @@ export class QueryExecutor {
                   blockResult = rowValue >= value;
                   break;
                 case "matches":
+                  // eslint-disable-next-line no-case-declarations
                   try {
                     const regex = new RegExp(value.toString());
                     blockResult = regex.test(rowValue.toString());
+                    console.log(
+                      "TEST",
+                      value.toString(),
+                      blockResult,
+                      rowValue.toString()
+                    );
                   } catch (e) {
                     throw new Error(`Invalid regex pattern: '${value}'`);
                   }
