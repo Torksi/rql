@@ -338,7 +338,7 @@ dataset = users
 
 # Changelog
 
-## 2.0.0 (2024-XX-XX)
+## 2.0.0 (2024-04-12)
 
 - Added better functionality for `search` statement
 - Added grouping option for `comp` statement via `config` statement
