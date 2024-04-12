@@ -403,13 +403,13 @@ export class QueryExecutor {
    *
    * If any field or operator is not found in a row of data, an error will be thrown.
    *
-   * @deprecated This function is still under development.
    * @param {Query} query The query object containing fields, alters, filters, sort, and limit properties.
    * @param {Array} data The data to be queried, as an Elasticsearch response.
    * @returns {Array} The result of the query execution, as an array of objects.
    * @throws {Error} If any field in the query is not found in the data, or an invalid operator is used.
    * @public
    * @static
+   * @deprecated This method is deprecated and will be removed in a future release. Use the `QueryExecutor.executeElasticQuery` method instead.
    */
   public static async executeElasticQuery(
     client: Client,
