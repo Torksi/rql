@@ -1,5 +1,5 @@
-import { QueryExecutor } from "../../src/legacy/LegacyQueryExecutor";
-import { QueryParser } from "../../src/legacy/LegacyQueryParser";
+import { LegacyQueryExecutor as QueryExecutor } from "../../src/legacy/LegacyQueryExecutor";
+import { LegacyQueryParser as QueryParser } from "../../src/legacy/LegacyQueryParser";
 
 const testData = [
   {

@@ -1,4 +1,4 @@
-import { QueryParser } from "../../src/legacy/LegacyQueryParser";
+import { LegacyQueryParser as QueryParser } from "../../src/legacy/LegacyQueryParser";
 
 describe("Test query validation", () => {
   it("should validate the full query", () => {

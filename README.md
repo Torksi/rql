@@ -338,6 +338,10 @@ dataset = users
 
 # Changelog
 
+## 2.0.1 (2024-04-12)
+
+- Hotfix: Fixed exports of QueryParser and QueryExecutor
+
 ## 2.0.0 (2024-04-12)
 
 - Added better functionality for `search` statement

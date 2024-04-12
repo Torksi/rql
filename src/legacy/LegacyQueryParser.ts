@@ -6,7 +6,7 @@ import {
   QueryParsingOptions,
 } from "../types";
 
-export class QueryParser {
+export class LegacyQueryParser {
   /**
    * Parses the provided query string into a Query object.
    *

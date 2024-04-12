@@ -5,7 +5,7 @@ import { Query, QueryAlter } from "../types";
 import { Client } from "@elastic/elasticsearch";
 import dynamicField from "../dynamicField";
 
-export class QueryExecutor {
+export class LegacyQueryExecutor {
   /**
    * Executes the provided query on the given data array.
    *
