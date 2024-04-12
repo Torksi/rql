@@ -1,3 +1,3 @@
-export * from "./QueryParser";
-export * from "./QueryExecutor";
+export * from "./legacy/LegacyQueryParser";
+export * from "./legacy/LegacyQueryExecutor";
 export * from "./types";
