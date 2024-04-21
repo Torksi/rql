@@ -32,17 +32,8 @@ export class QueryParser {
   ): Query {
     const query: Query = {
       dataset: "",
-      fields: [],
-      filters: [],
-      alters: [],
-      comp: [],
       config: [],
-      search: null,
-      sort: null,
-      dedup: null,
-      limit: 0,
-      grouping: null,
-      returnType: "records",
+      statements: [],
     };
 
     // Remove comments from the query string

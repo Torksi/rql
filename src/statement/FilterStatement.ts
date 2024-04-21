@@ -1,170 +1,165 @@
+import dynamicField from "../dynamicField";
 import ipRangeCheck from "ip-range-check";
 import {
   Query,
   QueryFilter,
   QueryFilterBlock,
   QueryFilterExpression,
+  QueryStatement,
 } from "../types";
 import { AbstractStatement } from "./AbstractStatement";
 import { ConfigStatement } from "./ConfigStatement";
-import dynamicField from "../dynamicField";
 
 export class FilterStatement extends AbstractStatement {
-  execute(query: Query, data: any[]): any[] {
-    const { caseSensitive } = new ConfigStatement().execute(query, data);
+  execute(query: Query, statement: QueryStatement, data: any[]): any[] {
+    const { caseSensitive } = new ConfigStatement().execute(
+      query,
+      statement,
+      data
+    );
 
-    if (query.filters && query.filters.length > 0) {
-      data = data.filter((row) => {
-        let allFiltersResult = true; // Track the result across all filters (MULTI logic)
+    data = data.filter((row) => {
+      let filterResult = false; // Assume filter fails for OR and AND logic until a passing block is found
 
-        // Label for breaking out of nested loops
-        filterLoop: for (const filter of query.filters) {
-          let filterResult = false; // Assume filter fails for OR and AND logic until a passing block is found
+      if (!statement.filter) {
+        throw new Error("Filter statement is missing filter object");
+      }
 
-          for (const block of filter.blocks) {
-            let blockResult = true; // Assume block passes (AND logic) until a failing expression is found
+      for (const block of statement.filter.blocks) {
+        let blockResult = true; // Assume block passes (AND logic) until a failing expression is found
 
-            for (const expression of block.expressions) {
-              const { field, operator, value } = expression;
-              const rowValue = dynamicField(field, row);
+        for (const expression of block.expressions) {
+          const { field, operator, value } = expression;
+          const rowValue = dynamicField(field, row);
 
-              // If rowValue is null, the expression fails
-              if (
-                rowValue === null &&
-                value.toString().toLowerCase() !== "null" &&
-                value.toString().toLowerCase() !== "undefined"
-              ) {
-                blockResult = false;
-                break; // Stop evaluating this block
-              }
-
-              operatorSwitch: switch (operator) {
-                case "equals": {
-                  if (
-                    value.toString().toLowerCase() === "null" ||
-                    value.toString().toLowerCase() === "undefined"
-                  ) {
-                    blockResult = rowValue === null || rowValue === undefined;
-                    break operatorSwitch;
-                  }
-
-                  if (!caseSensitive) {
-                    blockResult =
-                      rowValue === value ||
-                      rowValue.toString().toLowerCase() ===
-                        value.toString().toLowerCase();
-                    break;
-                  }
-
-                  blockResult =
-                    rowValue === value ||
-                    rowValue.toString() === value.toString();
-                  break;
-                }
-
-                case "notEquals": {
-                  if (
-                    value.toString().toLowerCase() === "null" ||
-                    value.toString().toLowerCase() === "undefined"
-                  ) {
-                    blockResult = rowValue !== null && rowValue !== undefined;
-                    break operatorSwitch;
-                  }
-
-                  if (!caseSensitive) {
-                    blockResult =
-                      rowValue !== value &&
-                      rowValue.toString().toLowerCase() !==
-                        value.toString().toLowerCase();
-                    break;
-                  }
-
-                  blockResult =
-                    rowValue !== value ||
-                    rowValue.toString() !== value.toString();
-                  break;
-                }
-                case "contains":
-                  if (!caseSensitive) {
-                    blockResult =
-                      rowValue.includes(value) ||
-                      rowValue
-                        .toString()
-                        .toLowerCase()
-                        .includes(value.toString().toLowerCase());
-                    break;
-                  }
-
-                  blockResult =
-                    rowValue.includes(value) ||
-                    rowValue.toString().includes(value.toString());
-                  break;
-                case "notContains":
-                  if (!caseSensitive) {
-                    blockResult =
-                      !rowValue.includes(value) &&
-                      !rowValue
-                        .toString()
-                        .toLowerCase()
-                        .includes(value.toString().toLowerCase());
-                    break;
-                  }
-
-                  blockResult =
-                    !rowValue.includes(value) ||
-                    !rowValue.toString().includes(value.toString());
-                  break;
-                case "lessThan":
-                  blockResult = rowValue < value;
-                  break;
-                case "greaterThan":
-                  blockResult = rowValue > value;
-                  break;
-                case "lessThanOrEquals":
-                  blockResult = rowValue <= value;
-                  break;
-                case "greaterThanOrEquals":
-                  blockResult = rowValue >= value;
-                  break;
-                case "matches":
-                  // eslint-disable-next-line no-case-declarations
-                  try {
-                    const regex = new RegExp(value.toString());
-                    blockResult = regex.test(rowValue.toString());
-                  } catch (e) {
-                    throw new Error(`Invalid regex pattern: '${value}'`);
-                  }
-                  break;
-                case "incidr":
-                  blockResult = ipRangeCheck(rowValue, value.toString());
-                  break;
-                case "notIncidr":
-                  blockResult = !ipRangeCheck(rowValue, value.toString());
-                  break;
-                default:
-                  // This should never happen as the validator should catch this
-                  throw new Error(`Invalid operator: '${operator}'`);
-              }
-              if (!blockResult) {
-                break; // Stop evaluating this block as one expression has failed
-              }
-            }
-
-            if (blockResult) {
-              filterResult = true; // A block passed, so the filter passes for OR and AND logic
-              break; // Stop evaluating other blocks in this filter
-            }
+          // If rowValue is null, the expression fails
+          if (
+            rowValue === null &&
+            value.toString().toLowerCase() !== "null" &&
+            value.toString().toLowerCase() !== "undefined"
+          ) {
+            blockResult = false;
+            break; // Stop evaluating this block
           }
 
-          if (!filterResult) {
-            allFiltersResult = false;
-            break filterLoop; // Stop the filter function as one filter has failed (MULTI logic)
+          operatorSwitch: switch (operator) {
+            case "equals": {
+              if (
+                value.toString().toLowerCase() === "null" ||
+                value.toString().toLowerCase() === "undefined"
+              ) {
+                blockResult = rowValue === null || rowValue === undefined;
+                break operatorSwitch;
+              }
+
+              if (!caseSensitive) {
+                blockResult =
+                  rowValue === value ||
+                  rowValue.toString().toLowerCase() ===
+                    value.toString().toLowerCase();
+                break;
+              }
+
+              blockResult =
+                rowValue === value || rowValue.toString() === value.toString();
+              break;
+            }
+
+            case "notEquals": {
+              if (
+                value.toString().toLowerCase() === "null" ||
+                value.toString().toLowerCase() === "undefined"
+              ) {
+                blockResult = rowValue !== null && rowValue !== undefined;
+                break operatorSwitch;
+              }
+
+              if (!caseSensitive) {
+                blockResult =
+                  rowValue !== value &&
+                  rowValue.toString().toLowerCase() !==
+                    value.toString().toLowerCase();
+                break;
+              }
+
+              blockResult =
+                rowValue !== value || rowValue.toString() !== value.toString();
+              break;
+            }
+            case "contains":
+              if (!caseSensitive) {
+                blockResult =
+                  rowValue.includes(value) ||
+                  rowValue
+                    .toString()
+                    .toLowerCase()
+                    .includes(value.toString().toLowerCase());
+                break;
+              }
+
+              blockResult =
+                rowValue.includes(value) ||
+                rowValue.toString().includes(value.toString());
+              break;
+            case "notContains":
+              if (!caseSensitive) {
+                blockResult =
+                  !rowValue.includes(value) &&
+                  !rowValue
+                    .toString()
+                    .toLowerCase()
+                    .includes(value.toString().toLowerCase());
+                break;
+              }
+
+              blockResult =
+                !rowValue.includes(value) ||
+                !rowValue.toString().includes(value.toString());
+              break;
+            case "lessThan":
+              blockResult = rowValue < value;
+              break;
+            case "greaterThan":
+              blockResult = rowValue > value;
+              break;
+            case "lessThanOrEquals":
+              blockResult = rowValue <= value;
+              break;
+            case "greaterThanOrEquals":
+              blockResult = rowValue >= value;
+              break;
+            case "matches":
+              // eslint-disable-next-line no-case-declarations
+              try {
+                const regex = new RegExp(value.toString());
+                blockResult = regex.test(rowValue.toString());
+              } catch (e) {
+                throw new Error(`Invalid regex pattern: '${value}'`);
+              }
+              break;
+            case "incidr":
+              blockResult = ipRangeCheck(rowValue, value.toString());
+              break;
+            case "notIncidr":
+              blockResult = !ipRangeCheck(rowValue, value.toString());
+              break;
+            default:
+              // This should never happen as the validator should catch this
+              throw new Error(`Invalid operator: '${operator}'`);
+          }
+          if (!blockResult) {
+            break; // Stop evaluating this block as one expression has failed
           }
         }
 
-        return allFiltersResult;
-      });
-    }
+        if (blockResult) {
+          filterResult = true; // A block passed, so the filter passes for OR and AND logic
+          break; // Stop evaluating other blocks in this filter
+        }
+      }
+
+      return filterResult;
+    });
 
     return data;
   }
@@ -172,7 +167,7 @@ export class FilterStatement extends AbstractStatement {
   parse(query: Query, statement: string) {
     const filter = statement.substring(6).trim();
     const parsedFilter = this.parseFilter(filter);
-    query.filters.push(parsedFilter);
+    query.statements.push({ type: "filter", filter: parsedFilter });
   }
 
   parseFilter(filter: string): QueryFilter {

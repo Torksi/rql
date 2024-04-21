@@ -1,9 +1,13 @@
-import { Query } from "../types";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Query, QueryStatement } from "../types";
 import { AbstractStatement } from "./AbstractStatement";
 
 export class DatasetStatement extends AbstractStatement {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  execute(_query: Query, _data: any[]): boolean | any[] {
+  execute(
+    _query: Query,
+    _statement: QueryStatement,
+    _data: any[]
+  ): boolean | any[] {
     throw new Error("Method not implemented.");
   }
 

@@ -19,4 +19,11 @@ describe("Test 'config' statement", () => {
       "Invalid dataset statement: 'dataset=a=b'"
     );
   });
+
+  test("it should fail with invalid dataset", () => {
+    const query = "dataset=a=b=/d";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid dataset statement: 'dataset=a=b=/d'"
+    );
+  });
 });

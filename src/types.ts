@@ -56,7 +56,7 @@ export interface QueryConfig {
   value: string;
 }
 
-export interface Query {
+export interface LegacyQuery {
   dataset: string;
   fields: QueryField[];
   filters: QueryFilter[];
@@ -69,6 +69,35 @@ export interface Query {
   search: string | null;
   limit: number;
   returnType: "records" | "stats";
+}
+
+export interface QueryStatement {
+  type:
+    | "dataset"
+    | "filter"
+    | "fields"
+    | "sort"
+    | "limit"
+    | "comp"
+    | "alter"
+    | "config"
+    | "grouping"
+    | "dedup"
+    | "search";
+  filter?: QueryFilter;
+  fields?: QueryField[];
+  sort?: QuerySort[];
+  limit?: number;
+  dedup?: QueryDedup;
+  alter?: QueryAlter;
+  search?: string;
+  comp?: QueryComp[];
+}
+
+export interface Query {
+  dataset: string;
+  config: QueryConfig[];
+  statements: QueryStatement[];
 }
 
 export interface QueryParsingOptions {

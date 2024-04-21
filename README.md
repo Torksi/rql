@@ -56,18 +56,7 @@ RQL can be used to generate queries for ElasticSearch. The `QueryExecutor` class
 
 # Syntax Guide
 
-The query consists of multiple statements separated by the pipe (`|`) character. The statements are case-sensitive, and must be written in lowercase. The query lines can be commented out with `#`. The order of the statements doesn't matter as they will automatically be executed in the following order:
-
-1. `alter`
-1. `fields`
-1. `config`
-1. `search`
-1. `filter`
-1. `sort`
-1. `dedup`
-1. `limit`
-1. `comp`
-1. (`dataset`)
+The query consists of multiple statements separated by the pipe (`|`) character. The statements are case-sensitive, and must be written in lowercase. The query lines can be commented out with `#`. The statements are executed in the order they are written in the query.
 
 ## Operators
 
@@ -168,9 +157,7 @@ The `comp` statement is used to calculate statistics for results. This function 
 // Returns the total number of users, the number of distinct users and the first login time in the USA
 dataset = logins
 | filter country = "USA"
-| comp count username as totalUsers
-| comp count_distinct username as distinctUsers
-| comp earliest _time as firstLogin
+| comp count username as totalUsers, count_distinct username as distinctUsers, earliest _time as firstLogin
 
 // Returns the amount of logins per country
 dataset = logins
@@ -313,8 +300,8 @@ Compared to the `filter` statement, the `search` statement searches all fields i
 ```
 // find all users with "john" in their name or email
 dataset = users
-| search "john"
 | fields name, email
+| search "john"
 ```
 
 ## sort
@@ -338,6 +325,15 @@ dataset = users
 
 # Changelog
 
+## 3.0.0 (2024-04-21)
+
+- Breaking change: Reworked query parsing and execution logic
+  - Queries are now parsed in the order they are written in the query string, instead of being grouped by statement type
+  - This might break existing queries that rely on the old fixed order of statements
+  - This change makes the query execution more predictable and easier to understand and also allows chaining of statements in a more flexible way
+  - Chaining multiple `comp` functions must be done on one statement seperated by commas instead of multiple `comp` statements
+- Removed old deprecated `LegacyQueryExecutor` and `LegacyQueryParser` classes
+
 ## 2.0.1 (2024-04-12)
 
 - Hotfix: Fixed exports of QueryParser and QueryExecutor
@@ -347,6 +343,7 @@ dataset = users
 - Added better functionality for `search` statement
 - Added grouping option for `comp` statement via `config` statement
 - Refactored codebase to improve maintainability and readability
+- Deprecated old query execution and parsing logic and moved them to `LegacyQueryExecutor` and `LegacyQueryParser`
 
 ## 1.8.0 (2024-04-07)
 

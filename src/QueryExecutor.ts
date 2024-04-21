@@ -1,6 +1,5 @@
 import { Client } from "@elastic/elasticsearch";
 import { AlterStatement } from "./statement/AlterStatement";
-import { CompStatement } from "./statement/CompStatement";
 import { DedupStatement } from "./statement/DedupStatement";
 import { FieldsStatement } from "./statement/FieldsStatement";
 import { FilterStatement } from "./statement/FilterStatement";
@@ -8,6 +7,7 @@ import { LimitStatement } from "./statement/LimitStatement";
 import { SearchStatement } from "./statement/SearchStatement";
 import { SortStatement } from "./statement/SortStatement";
 import { Query } from "./types";
+import { CompStatement } from "./statement/CompStatement";
 
 export class QueryExecutor {
   /**
@@ -27,14 +27,40 @@ export class QueryExecutor {
   public static executeQuery(query: Query, data: any[]): any[] {
     let results = data;
 
-    results = new AlterStatement().execute(query, results);
-    results = new FieldsStatement().execute(query, results);
-    results = new SearchStatement().execute(query, results);
-    results = new FilterStatement().execute(query, results);
-    results = new SortStatement().execute(query, results);
-    results = new DedupStatement().execute(query, results);
-    results = new LimitStatement().execute(query, results);
-    results = new CompStatement().execute(query, results);
+    for (const statement of query.statements) {
+      switch (statement.type) {
+        case "dataset":
+        case "config":
+          // Do nothing as these statements are already handled in QueryParser
+          break;
+        case "filter":
+          results = new FilterStatement().execute(query, statement, results);
+          break;
+        case "fields":
+          results = new FieldsStatement().execute(query, statement, results);
+          break;
+        case "sort":
+          results = new SortStatement().execute(query, statement, results);
+          break;
+        case "limit":
+          results = new LimitStatement().execute(query, statement, results);
+          break;
+        case "dedup":
+          results = new DedupStatement().execute(query, statement, results);
+          break;
+        case "alter":
+          results = new AlterStatement().execute(query, statement, results);
+          break;
+        case "comp":
+          results = new CompStatement().execute(query, statement, results);
+          break;
+        case "search":
+          results = new SearchStatement().execute(query, statement, results);
+          break;
+        default:
+          throw new Error(`Invalid statement type: '${statement.type}'`);
+      }
+    }
 
     return results;
   }
@@ -60,11 +86,6 @@ export class QueryExecutor {
     query: Query
   ): Promise<any[]> {
     const body: any = {};
-
-    // Fields
-    if (query.fields && query.fields.length > 0) {
-      body._source = query.fields.map((field) => field.name);
-    }
 
     body.size = 1000;
 

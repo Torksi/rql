@@ -5,13 +5,8 @@ describe("Test 'limit' statement", () => {
     const query =
       "dataset = sales_invoices | fields name, createdAt, paid as isPaid, canceled, amount, dueDate, notes | limit 25";
     const parsedQuery = QueryParser.parseQuery(query);
-    expect(parsedQuery.limit).toBe(25);
-  });
-
-  it("should return the default limit", () => {
-    const query = "dataset = sales_invoices | fields name, createdAt";
-    const parsedQuery = QueryParser.parseQuery(query);
-    expect(parsedQuery.limit).toBe(0);
+    expect(parsedQuery.statements[1].type).toBe("limit");
+    expect(parsedQuery.statements[1].limit).toBe(25);
   });
 
   it("should fail with invalid limit", () => {
@@ -25,6 +20,13 @@ describe("Test 'limit' statement", () => {
     const query = "filter amount > 1000 or dueDate < date() | limit ddd";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid limit statement: 'limit ddd'"
+    );
+  });
+
+  it("should fail with invalid limit", () => {
+    const query = "filter amount > 1000 or dueDate < date() | limit 50 100";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid limit statement: 'limit 50 100'"
     );
   });
 });

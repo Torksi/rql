@@ -1,18 +1,20 @@
-import { Query } from "../types";
+import { Query, QueryStatement } from "../types";
 import { AbstractStatement } from "./AbstractStatement";
 
 export class FieldsStatement extends AbstractStatement {
-  execute(query: Query, data: any[]): any[] {
-    if (query.fields && query.fields.length > 0) {
-      data = data.map((row) => {
-        const result: any = {};
-        for (const field of query.fields) {
-          const { name, alias } = field;
-          result[alias || name] = row[name];
-        }
-        return result;
-      });
-    }
+  execute(_query: Query, statement: QueryStatement, data: any[]): any[] {
+    data = data.map((row) => {
+      if (!statement.fields) {
+        throw new Error("Fields statement must have fields");
+      }
+
+      const result: any = {};
+      for (const field of statement.fields) {
+        const { name, alias } = field;
+        result[alias || name] = row[name];
+      }
+      return result;
+    });
 
     return data;
   }
@@ -20,12 +22,14 @@ export class FieldsStatement extends AbstractStatement {
   parse(query: Query, statement: string) {
     statement = statement.substring(6).trim();
     const fields = statement.split(",");
-    query.fields = fields.map((s) => {
+    const fieldsStat = fields.map((s) => {
       const [name, alias] = s.trim().split(/\s+as\s+/i);
       if (alias) {
         return { name, alias: alias || name };
       }
       return { name };
     });
+
+    query.statements.push({ type: "fields", fields: fieldsStat });
   }
 }

@@ -1,11 +1,13 @@
-import { Query } from "../types";
+import { Query, QueryStatement } from "../types";
 import { AbstractStatement } from "./AbstractStatement";
 
 export class LimitStatement extends AbstractStatement {
-  execute(query: Query, data: any[]): any[] {
-    if (query.limit) {
-      data = data.slice(0, query.limit);
+  execute(_query: Query, statement: QueryStatement, data: any[]): any[] {
+    if (statement.limit === undefined || statement.limit === null) {
+      throw new Error("Limit statement must have limit");
     }
+
+    data = data.slice(0, statement.limit);
 
     return data;
   }
@@ -21,6 +23,6 @@ export class LimitStatement extends AbstractStatement {
       throw new Error(`Invalid limit statement: '${statement}'`);
     }
 
-    query.limit = limit;
+    query.statements.push({ type: "limit", limit });
   }
 }

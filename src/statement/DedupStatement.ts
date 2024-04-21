@@ -1,57 +1,59 @@
 import dynamicField from "../dynamicField";
-import { Query } from "../types";
+import { Query, QueryStatement } from "../types";
 import { AbstractStatement } from "./AbstractStatement";
 
 export class DedupStatement extends AbstractStatement {
-  execute(query: Query, data: any[]): any[] {
-    if (query.dedup && query.dedup !== null) {
-      const { fields, sortBy, sortDirection } = query.dedup;
+  execute(_query: Query, statement: QueryStatement, data: any[]): any[] {
+    if (!statement.dedup) {
+      throw new Error("Dedup statement must have dedup");
+    }
 
-      // Validate all dedup fields
-      for (const field of fields) {
-        if (
-          query.fields &&
-          query.fields.length > 0 &&
-          query.fields.find(
-            (f) =>
-              (f.name === field && f.alias === undefined) ||
-              (f.alias === field && f.alias !== undefined)
-          ) === undefined
-        ) {
-          throw new Error(`Invalid dedup field: '${field}'`);
-        }
+    const { fields, sortBy, sortDirection } = statement.dedup;
+
+    // TODO: Check if dedup fields are present in the dataset
+    /*for (const field of fields) {
+      if (
+        query.fields &&
+        query.fields.length > 0 &&
+        query.fields.find(
+          (f) =>
+            (f.name === field && f.alias === undefined) ||
+            (f.alias === field && f.alias !== undefined)
+        ) === undefined
+      ) {
+        throw new Error(`Invalid dedup field: '${field}'`);
       }
+    }*/
 
-      const dedupedResults = new Map();
+    const dedupedResults = new Map();
 
-      for (const row of data) {
-        const compositeKeyParts = fields.map((field) => {
-          const fieldValue = dynamicField(field, row);
-          return fieldValue !== null && fieldValue !== undefined
-            ? fieldValue.toString()
-            : "";
-        });
+    for (const row of data) {
+      const compositeKeyParts = fields.map((field) => {
+        const fieldValue = dynamicField(field, row);
+        return fieldValue !== null && fieldValue !== undefined
+          ? fieldValue.toString()
+          : "";
+      });
 
-        if (!compositeKeyParts.includes("")) {
-          const compositeKey = compositeKeyParts.join("|");
+      if (!compositeKeyParts.includes("")) {
+        const compositeKey = compositeKeyParts.join("|");
 
-          // Check if the record needs to be updated based on sortDirection
-          if (!dedupedResults.has(compositeKey) || (sortBy && sortDirection)) {
-            const existingRow = dedupedResults.get(compositeKey);
-            if (
-              !existingRow ||
-              (sortDirection === "desc" &&
-                dynamicField(sortBy || "", row) >
-                  dynamicField(sortBy || "", existingRow))
-            ) {
-              dedupedResults.set(compositeKey, row);
-            }
+        // Check if the record needs to be updated based on sortDirection
+        if (!dedupedResults.has(compositeKey) || (sortBy && sortDirection)) {
+          const existingRow = dedupedResults.get(compositeKey);
+          if (
+            !existingRow ||
+            (sortDirection === "desc" &&
+              dynamicField(sortBy || "", row) >
+                dynamicField(sortBy || "", existingRow))
+          ) {
+            dedupedResults.set(compositeKey, row);
           }
         }
       }
-
-      data = Array.from(dedupedResults.values());
     }
+
+    data = Array.from(dedupedResults.values());
 
     return data;
   }
@@ -96,10 +98,13 @@ export class DedupStatement extends AbstractStatement {
 
     fields = fields.map((f) => f.trim().replace(/,$/, ""));
 
-    query.dedup = {
-      fields,
-      sortBy,
-      sortDirection: sortDirection,
-    };
+    query.statements.push({
+      type: "dedup",
+      dedup: {
+        fields,
+        sortBy,
+        sortDirection: sortDirection,
+      },
+    });
   }
 }

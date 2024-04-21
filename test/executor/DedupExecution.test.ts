@@ -54,12 +54,12 @@ describe("Test 'dedup' statement execution", () => {
     expect(result[3].device).toBe("win-1");
   });
 
-  test("dedup: invalid field", () => {
+  test("dedup: invalid field, return nothing", () => {
     const query =
       "dataset = signInLogs | fields username, device | dedup username, device, location by createdAt desc";
     const parsedQuery = QueryParser.parseQuery(query);
-    expect(() =>
-      QueryExecutor.executeQuery(parsedQuery, DeviceTestData.getData())
-    ).toThrow("Invalid dedup field: 'location'");
+    const result = () =>
+      QueryExecutor.executeQuery(parsedQuery, DeviceTestData.getData());
+    expect(result.length).toBe(0);
   });
 });

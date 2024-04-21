@@ -8,6 +8,7 @@ export class DeviceTestData {
       location: "US",
       role: undefined,
       description: " Created, 2022-05-01 ",
+      deviceValue: 1000,
     },
     {
       id: 2,
@@ -16,6 +17,7 @@ export class DeviceTestData {
       createdAt: "2022-02-01",
       location: "US",
       role: "user",
+      deviceValue: 1000,
     },
     {
       id: 3,
@@ -24,6 +26,7 @@ export class DeviceTestData {
       createdAt: "2022-05-01",
       location: "GB",
       role: "admin",
+      deviceValue: 500,
     },
     {
       id: 4,
@@ -31,6 +34,7 @@ export class DeviceTestData {
       device: "win-2",
       createdAt: "2022-05-02",
       role: null,
+      deviceValue: 600,
     },
     {
       id: 5,
@@ -38,6 +42,7 @@ export class DeviceTestData {
       device: "win-1",
       createdAt: "2022-05-02",
       location: "GB",
+      deviceValue: 400,
     },
   ];
 

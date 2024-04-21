@@ -1,9 +1,9 @@
-import { Query } from "../types";
+import { Query, QueryStatement } from "../types";
 import { AbstractStatement } from "./AbstractStatement";
 
 export class ConfigStatement extends AbstractStatement {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  execute(query: Query, _data: any[]): any {
+  execute(query: Query, _statement: QueryStatement, _data: any[]): any {
     let caseSensitive = true;
     let grouping = null;
     if (query.config && query.config.length > 0) {
@@ -12,7 +12,6 @@ export class ConfigStatement extends AbstractStatement {
           caseSensitive = config.value === "true";
         } else if (config.key === "grouping") {
           grouping = config.value;
-          query.grouping = config.value;
         }
       }
     }

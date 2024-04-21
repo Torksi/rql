@@ -41,12 +41,13 @@ describe("Test 'comp' statement execution", () => {
 
   test("comp: max / min / avg / sum / median", () => {
     const query =
-      "dataset = sales_invoices | comp max amount as maxAmount | comp min amount as minAmount | comp avg amount as avgAmount | comp sum amount as sumAmount | comp median amount as medianAmount";
+      "dataset = sales_invoices | comp max amount as maxAmount, min amount as minAmount, avg amount as avgAmount, sum amount as sumAmount, median amount as medianAmount";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
       CustomerTestData.getData()
     );
+
     expect(result.length).toBe(1);
     expect(result[0].maxAmount).toBe(900);
     expect(result[0].minAmount).toBe(200);
@@ -57,7 +58,7 @@ describe("Test 'comp' statement execution", () => {
 
   test("comp: earliest / latest", () => {
     const query =
-      "dataset = sales_invoices | comp earliest createdAt as earliestDate | comp latest createdAt as latestDate";
+      "dataset = sales_invoices | comp earliest createdAt as earliestDate, latest createdAt as latestDate";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
@@ -72,7 +73,7 @@ describe("Test 'comp' statement execution", () => {
 
   test("comp: first / last", () => {
     const query =
-      "dataset = signInLogs | comp first device as firstDevice | comp last device as lastDevice";
+      "dataset = signInLogs | comp first device as firstDevice, last device as lastDevice";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
@@ -104,6 +105,20 @@ describe("Test 'comp' statement execution", () => {
     );
     expect(result.length).toBe(2);
     expect(result[0].totalUsers).toBe(2);
+  });
+
+  test("comp: count - group & avg", () => {
+    const query =
+      "dataset = signInLogs | comp count username as totalUsers, avg deviceValue as avgValue | config grouping = location";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData()
+    );
+
+    expect(result.length).toBe(2);
+    expect(result[0].totalUsers).toBe(2);
+    expect(result[1].avgValue).toBe(450);
   });
 
   test("comp: invalid function", () => {
