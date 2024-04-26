@@ -325,6 +325,15 @@ dataset = users
 
 # Changelog
 
+## 3.1.0 (2024-04-26)
+
+- Added support for relative date filtering in `filter` statement
+  - Supported units: `s` (seconds), `m` (minutes), `h` (hours), `d` (days)
+  - Example: `filter date > -1h`
+- Added filter value alias `now()` for current date and time
+  - Example: `filter date > now()`
+- Improved date filtering consistency
+
 ## 3.0.0 (2024-04-21)
 
 - Breaking change: Reworked query parsing and execution logic

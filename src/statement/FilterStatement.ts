@@ -29,7 +29,8 @@ export class FilterStatement extends AbstractStatement {
         let blockResult = true; // Assume block passes (AND logic) until a failing expression is found
 
         for (const expression of block.expressions) {
-          const { field, operator, value } = expression;
+          const { field, operator } = expression;
+          let { value } = expression;
           const rowValue = dynamicField(field, row);
 
           // If rowValue is null, the expression fails
@@ -40,6 +41,46 @@ export class FilterStatement extends AbstractStatement {
           ) {
             blockResult = false;
             break; // Stop evaluating this block
+          }
+
+          // Relative date parsing
+          const relativeDateRegex = /(-)?(\d+)([dhms])/;
+          const relativeDateMatch = value
+            .toString()
+            .trim()
+            .match(relativeDateRegex);
+
+          if (relativeDateMatch) {
+            const now = new Date();
+            const relativeDate = new Date(now);
+
+            const sign = relativeDateMatch[1] === "-" ? -1 : 1;
+            const dateVal = parseInt(relativeDateMatch[2], 10);
+            const unit = relativeDateMatch[3];
+
+            switch (unit) {
+              case "d":
+                relativeDate.setDate(relativeDate.getDate() + sign * dateVal);
+                break;
+              case "h":
+                relativeDate.setHours(relativeDate.getHours() + sign * dateVal);
+                break;
+              case "m":
+                relativeDate.setMinutes(
+                  relativeDate.getMinutes() + sign * dateVal
+                );
+                break;
+              case "s":
+                relativeDate.setSeconds(
+                  relativeDate.getSeconds() + sign * dateVal
+                );
+                break;
+              default:
+                // Won't happen as the regex pattern should catch this
+                throw new Error(`Invalid relative date unit: '${unit}'`);
+            }
+
+            value = relativeDate.toISOString();
           }
 
           operatorSwitch: switch (operator) {
@@ -299,7 +340,7 @@ export class FilterStatement extends AbstractStatement {
       return value === "true";
     } else if (!isNaN(Number(value))) {
       return Number(value);
-    } else if (value === "date()") {
+    } else if (value === "date()" || value === "now()") {
       return new Date();
     } else {
       return value;

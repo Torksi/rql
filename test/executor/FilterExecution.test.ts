@@ -2,6 +2,7 @@ import { QueryExecutor } from "../../src/QueryExecutor";
 import { QueryParser } from "../../src/QueryParser";
 import { CustomerTestData } from "../data/CustomerTestData";
 import { DeviceTestData } from "../data/DeviceTestData";
+import { UnstrLogTestData } from "../data/UnstrLogTestData";
 import { UrlTestData } from "../data/UrlTestData";
 
 describe("Test 'filter' statement execution", () => {
@@ -298,5 +299,67 @@ describe("Test 'filter' statement execution", () => {
     );
 
     expect(result.length).toBe(2);
+  });
+});
+
+describe("Test 'filter' statement execution for date filtering", () => {
+  test("filter - date: basic", () => {
+    const query = "dataset = logs | filter date > 2024-04-13";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      UnstrLogTestData.getData()
+    );
+    expect(result.length).toBe(4);
+  });
+
+  test("filter - date: basic with hours", () => {
+    const query = "dataset = logs | filter date > 2024-04-13T23:50";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      UnstrLogTestData.getData()
+    );
+    expect(result.length).toBe(3);
+  });
+
+  test("filter - date: relative neg", () => {
+    const query = "dataset = live_logs | filter createdAt > -1d";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      CustomerTestData.getData()
+    );
+    expect(result.length).toBe(0);
+  });
+
+  test("filter - date: relative pos", () => {
+    const query = "dataset = live_logs | filter createdAt > 1h";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      CustomerTestData.getData()
+    );
+    expect(result.length).toBe(0);
+  });
+
+  test("filter - date: relative pos", () => {
+    const query = "dataset = live_logs | filter date < 5m";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      UnstrLogTestData.getData()
+    );
+    expect(result.length).toBe(7);
+  });
+
+  test("filter - date: relative pos", () => {
+    const query = "dataset = live_logs | filter date <= -30s";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      UnstrLogTestData.getData()
+    );
+    expect(result.length).toBe(7);
   });
 });
