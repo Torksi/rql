@@ -325,6 +325,11 @@ dataset = users
 
 # Changelog
 
+## 3.1.1 (2024-04-26)
+
+- Fixed bug with inconsistent date types (string vs Date) in `filter` statement
+  - Now all date values are converted to `Date` objects for consistency
+
 ## 3.1.0 (2024-04-26)
 
 - Added support for relative date filtering in `filter` statement

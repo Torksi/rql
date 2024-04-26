@@ -31,7 +31,7 @@ export class FilterStatement extends AbstractStatement {
         for (const expression of block.expressions) {
           const { field, operator } = expression;
           let { value } = expression;
-          const rowValue = dynamicField(field, row);
+          let rowValue = dynamicField(field, row);
 
           // If rowValue is null, the expression fails
           if (
@@ -41,6 +41,26 @@ export class FilterStatement extends AbstractStatement {
           ) {
             blockResult = false;
             break; // Stop evaluating this block
+          }
+
+          const isoRegex =
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+
+          if (typeof rowValue === "object" && rowValue instanceof Date) {
+            if (
+              typeof value === "string" &&
+              new Date(value).toString() !== "Invalid Date"
+            ) {
+              value = new Date(value);
+            }
+          } else if (isoRegex.test(rowValue)) {
+            rowValue = new Date(rowValue);
+            if (
+              typeof value === "string" &&
+              new Date(value).toString() !== "Invalid Date"
+            ) {
+              value = new Date(value);
+            }
           }
 
           // Relative date parsing
@@ -80,7 +100,7 @@ export class FilterStatement extends AbstractStatement {
                 throw new Error(`Invalid relative date unit: '${unit}'`);
             }
 
-            value = relativeDate.toISOString();
+            value = relativeDate;
           }
 
           operatorSwitch: switch (operator) {

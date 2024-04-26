@@ -31,6 +31,6 @@ export class UnstrLogTestData {
   ];
 
   public static getData() {
-    return JSON.parse(JSON.stringify(this.data));
+    return this.data;
   }
 }
