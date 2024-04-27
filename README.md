@@ -325,6 +325,10 @@ dataset = users
 
 # Changelog
 
+## 3.1.2 (2024-04-27)
+
+- Fixed bug with inconsistent UUID filtering in `filter` statement
+
 ## 3.1.1 (2024-04-26)
 
 - Fixed bug with inconsistent date types (string vs Date) in `filter` statement

@@ -64,7 +64,7 @@ export class FilterStatement extends AbstractStatement {
           }
 
           // Relative date parsing
-          const relativeDateRegex = /(-)?(\d+)([dhms])/;
+          const relativeDateRegex = /^(-)?(\d+)([dhms])/;
           const relativeDateMatch = value
             .toString()
             .trim()
@@ -356,7 +356,12 @@ export class FilterStatement extends AbstractStatement {
   }
 
   parseFilterValue(value: string): string | boolean | number | Date {
-    if (value === "true" || value === "false") {
+    const v4 = new RegExp(
+      /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
+    );
+    if (value.toString().match(v4)) {
+      return value.toString();
+    } else if (value === "true" || value === "false") {
       return value === "true";
     } else if (!isNaN(Number(value))) {
       return Number(value);

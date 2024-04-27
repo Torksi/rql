@@ -4,6 +4,7 @@ import { CustomerTestData } from "../data/CustomerTestData";
 import { DeviceTestData } from "../data/DeviceTestData";
 import { UnstrLogTestData } from "../data/UnstrLogTestData";
 import { UrlTestData } from "../data/UrlTestData";
+import { UuidTestData } from "../data/UuidTestData";
 
 describe("Test 'filter' statement execution", () => {
   test("filter: equals null", () => {
@@ -298,6 +299,30 @@ describe("Test 'filter' statement execution", () => {
       CustomerTestData.getData()
     );
 
+    expect(result.length).toBe(2);
+  });
+});
+
+describe("Test 'filter' statement execution with UUIDs", () => {
+  test("filter - uuid: equals", () => {
+    const query =
+      'dataset = logs | filter id = "d29f6582-80d7-4c7b-b7cf-45d2aae9ace0"';
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      UuidTestData.getData()
+    );
+    expect(result.length).toBe(1);
+  });
+
+  test("filter - uuid: not equals", () => {
+    const query =
+      "dataset = logs | filter id != d29f6582-80d7-4c7b-b7cf-45d2aae9ace0";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      UuidTestData.getData()
+    );
     expect(result.length).toBe(2);
   });
 });
