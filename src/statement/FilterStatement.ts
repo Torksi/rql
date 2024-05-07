@@ -144,7 +144,7 @@ export class FilterStatement extends AbstractStatement {
               }
 
               blockResult =
-                rowValue !== value || rowValue.toString() !== value.toString();
+                rowValue !== value && rowValue.toString() !== value.toString();
               break;
             }
             case "contains":

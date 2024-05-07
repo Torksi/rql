@@ -325,6 +325,10 @@ dataset = users
 
 # Changelog
 
+## 3.1.3 (2024-05-07)
+
+- Fixed bug in not equals operator in `filter` statement
+
 ## 3.1.2 (2024-04-27)
 
 - Fixed bug with inconsistent UUID filtering in `filter` statement
