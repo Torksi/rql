@@ -308,4 +308,39 @@ describe("Test 'alter' statement execution", () => {
     );
     expect(result[0].testValue).toBe(200);
   });
+
+  test("alter: to_number - numeric", () => {
+    const query = "dataset = test | alter testValue = to_number(value)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, [{ value: 200 }]);
+    expect(result[0].testValue).toBe(200);
+  });
+
+  test("alter: to_number - numeric string", () => {
+    const query = "dataset = test | alter testValue = to_number(value)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, [{ value: "200" }]);
+    expect(result[0].testValue).toBe(200);
+  });
+
+  test("alter: to_number - hex string", () => {
+    const query = "dataset = test | alter testValue = to_number(value)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, [{ value: "0xc8" }]);
+    expect(result[0].testValue).toBe(200);
+  });
+
+  test("alter: to_number - exponent string", () => {
+    const query = "dataset = test | alter testValue = to_number(value)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, [{ value: "2e2" }]);
+    expect(result[0].testValue).toBe(200);
+  });
+
+  test("alter: to_number - NaN", () => {
+    const query = "dataset = test | alter testValue = to_number(value)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, [{ value: "test" }]);
+    expect(result[0].testValue).toBe(NaN);
+  });
 });

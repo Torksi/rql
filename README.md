@@ -325,6 +325,11 @@ dataset = users
 
 # Changelog
 
+## 3.1.4 (2024-11-30)
+
+- Added `to_number` function to `alter` statement
+- Improved test coverage
+
 ## 3.1.3 (2024-05-07)
 
 - Fixed bug in not equals operator in `filter` statement
@@ -470,11 +475,6 @@ dataset = users
 - Improved test coverage for QueryExecutor
 - Cleaned test code
 - Updated dependencies
-
-# Roadmap
-
-- Support for `in` and `not in` operators
-- More functions for `alter` statement
 
 # License
 

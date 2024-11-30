@@ -79,6 +79,9 @@ export class AlterStatement extends AbstractStatement {
           case "to_date":
             row[alter.field] = new Date(fieldValue);
             break;
+          case "to_number":
+            row[alter.field] = Number(fieldValue);
+            break;
           case "trim": {
             if (
               !fieldValue ||
