@@ -325,6 +325,11 @@ dataset = users
 
 # Changelog
 
+## 3.1.5 (2025-01-06)
+
+- Optimized ElasticSearch query execution
+  - Some filters are now converted to ElasticSearch compatible filters, which should improve performance especially in large datasets
+
 ## 3.1.4 (2024-11-30)
 
 - Added `to_number` function to `alter` statement

@@ -6,8 +6,9 @@ import { FilterStatement } from "./statement/FilterStatement";
 import { LimitStatement } from "./statement/LimitStatement";
 import { SearchStatement } from "./statement/SearchStatement";
 import { SortStatement } from "./statement/SortStatement";
-import { Query } from "./types";
+import { Query, QueryFilterBlock, QueryStatement } from "./types";
 import { CompStatement } from "./statement/CompStatement";
+import { QueryFilterExpression as Expression } from "./types";
 
 export class QueryExecutor {
   /**
@@ -65,6 +66,82 @@ export class QueryExecutor {
     return results;
   }
 
+  private static buildElasticsearchExpression(expr: Expression): any {
+    switch (expr.operator) {
+      case "equals":
+        return { term: { [expr.field]: expr.value } };
+      case "notEquals":
+        return {
+          bool: { must_not: { term: { [expr.field]: expr.value } } },
+        };
+      case "greaterThan":
+        return { range: { [expr.field]: { gt: expr.value } } };
+      case "greaterThanOrEquals":
+        return { range: { [expr.field]: { gte: expr.value } } };
+      case "lessThan":
+        return { range: { [expr.field]: { lt: expr.value } } };
+      case "lessThanOrEquals":
+        return { range: { [expr.field]: { lte: expr.value } } };
+      case "contains":
+        // This doesn't work the same way in Elastic as it would in JS query execution, should be fixed later?
+        //return { wildcard: { [expr.field]: `*${expr.value}*` } };
+        return null;
+      case "notContains":
+        // Same as above
+        /*return {
+          bool: {
+            must_not: { wildcard: { [expr.field]: `*${expr.value}*` } },
+          },
+        };*/
+        return null;
+      case "matches":
+        return { regexp: { [expr.field]: expr.value } };
+      case "incidr":
+        // CIDR queries need special handling in Elasticsearch
+        return null;
+      case "notIncidr":
+        // Same as above
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  private static buildElasticsearchFilter(statement: QueryStatement): any {
+    if (statement.type !== "filter" || !statement.filter) return null;
+
+    const filter = statement.filter;
+
+    // Process all blocks (blocks are OR'ed together)
+    const blockFilters = filter.blocks
+      .map((block: QueryFilterBlock) => {
+        const expressionFilters = block.expressions
+          .map(this.buildElasticsearchExpression)
+          .filter((f: any) => f !== null);
+
+        if (expressionFilters.length === 0) return null;
+
+        // Expressions within a block are AND'ed together
+        return {
+          bool: {
+            must: expressionFilters,
+          },
+        };
+      })
+      .filter((f: any) => f !== null);
+
+    if (blockFilters.length === 0) return null;
+
+    // Multiple blocks are OR'ed together
+    return blockFilters.length === 1
+      ? blockFilters[0]
+      : {
+          bool: {
+            should: blockFilters,
+          },
+        };
+  }
+
   /**
    * WIP: Executes the provided query on the Elasticsearch client and index.
    *
@@ -85,9 +162,42 @@ export class QueryExecutor {
     index: string,
     query: Query
   ): Promise<any[]> {
-    const body: any = {};
+    const body: any = {
+      query: {
+        bool: {
+          must: [],
+        },
+      },
+      size: 1000,
+    };
 
-    body.size = 1000;
+    const elasticFilters: any[] = [];
+    let i = 0;
+
+    while (
+      i < query.statements.length &&
+      query.statements[i].type === "filter"
+    ) {
+      const elasticFilter = this.buildElasticsearchFilter(query.statements[i]);
+      if (elasticFilter) {
+        elasticFilters.push(elasticFilter);
+        i++;
+      } else {
+        // If we find a filter we can't convert to elastic, stop processing filters
+        break;
+      }
+    }
+
+    // Remaining statements are everything after the last processed filter
+    const remainingStatements = query.statements.slice(i);
+
+    if (elasticFilters.length > 0) {
+      body.query.bool.must = elasticFilters;
+    }
+
+    console.log({ body: JSON.stringify(body) });
+    console.log({ elasticFilters: JSON.stringify(elasticFilters) });
+    console.log({ remainingStatements: JSON.stringify(remainingStatements) });
 
     const allResults: any[] = [];
     let scrollId: string | undefined;
@@ -124,6 +234,11 @@ export class QueryExecutor {
       ...hit._source,
     }));
 
-    return this.executeQuery(query, data);
+    const remainingQuery: Query = {
+      ...query,
+      statements: remainingStatements,
+    };
+
+    return this.executeQuery(remainingQuery, data);
   }
 }
