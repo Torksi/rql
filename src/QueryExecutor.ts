@@ -142,6 +142,39 @@ export class QueryExecutor {
         };
   }
 
+  private static buildElasticsearchDedup(statement: QueryStatement): any {
+    if (!statement.dedup) return null;
+
+    const { fields, sortBy, sortDirection } = statement.dedup;
+
+    // For single field dedup, we can use collapse
+    if (fields.length === 1) {
+      const collapse = {
+        field: fields[0],
+      };
+
+      // If sort is specified, add inner_hits to get the first/last document
+      if (sortBy) {
+        return {
+          collapse,
+          sort: [
+            {
+              [sortBy]: {
+                order: sortDirection || "desc",
+              },
+            },
+          ],
+        };
+      }
+
+      return { collapse };
+    }
+
+    // For multiple fields, we need to use composite aggregation
+    // Return null to handle it post-query
+    return null;
+  }
+
   /**
    * WIP: Executes the provided query on the Elasticsearch client and index.
    *
@@ -171,51 +204,95 @@ export class QueryExecutor {
       size: 1000,
     };
 
+    // Separate elasticsearch-compatible operations from other statements
+    const remainingStatements: QueryStatement[] = [];
     const elasticFilters: any[] = [];
-    let i = 0;
+    let elasticDedup = null;
+    let useScroll = true;
 
-    while (
-      i < query.statements.length &&
-      query.statements[i].type === "filter"
-    ) {
-      const elasticFilter = this.buildElasticsearchFilter(query.statements[i]);
-      if (elasticFilter) {
-        elasticFilters.push(elasticFilter);
-        i++;
+    for (const statement of query.statements) {
+      if (statement.type === "filter") {
+        const elasticFilter = this.buildElasticsearchFilter(statement);
+        if (elasticFilter) {
+          elasticFilters.push(elasticFilter);
+        } else {
+          remainingStatements.push(statement);
+        }
+      } else if (statement.type === "dedup") {
+        elasticDedup = this.buildElasticsearchDedup(statement);
+        if (!elasticDedup) {
+          remainingStatements.push(statement);
+        } else {
+          // If we're using dedup, we can't use scroll
+          useScroll = false;
+        }
       } else {
-        // If we find a filter we can't convert to elastic, stop processing filters
-        break;
+        remainingStatements.push(statement);
       }
     }
 
-    // Remaining statements are everything after the last processed filter
-    const remainingStatements = query.statements.slice(i);
-
+    // Add filters to elasticsearch query
     if (elasticFilters.length > 0) {
       body.query.bool.must = elasticFilters;
+    }
+
+    // Add dedup to elasticsearch query if possible
+    if (elasticDedup) {
+      if (elasticDedup.collapse) {
+        body.collapse = elasticDedup.collapse;
+      }
+      if (elasticDedup.sort) {
+        body.sort = elasticDedup.sort;
+      }
     }
 
     const allResults: any[] = [];
     let scrollId: string | undefined;
 
     try {
-      let response = await client.search({
-        index,
-        scroll: "1m",
-        ...body,
-      });
-
-      scrollId = response._scroll_id;
-      allResults.push(...response.hits.hits);
-
-      while (response.hits.hits.length) {
-        response = await client.scroll({
-          scroll_id: scrollId,
+      if (useScroll) {
+        // Use scroll API for regular queries
+        let response = await client.search({
+          index,
           scroll: "1m",
+          ...body,
         });
 
         scrollId = response._scroll_id;
         allResults.push(...response.hits.hits);
+
+        while (response.hits.hits.length) {
+          response = await client.scroll({
+            scroll_id: scrollId,
+            scroll: "1m",
+          });
+
+          scrollId = response._scroll_id;
+          allResults.push(...response.hits.hits);
+        }
+      } else {
+        // Use regular search with from/size pagination for dedup queries
+        let from = 0;
+        const size = 1000;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const response = await client.search({
+            index,
+            ...body,
+            from,
+            size,
+          });
+
+          allResults.push(...response.hits.hits);
+
+          // Stop if we got fewer results than requested
+          if (response.hits.hits.length < size) {
+            break;
+          }
+
+          from += size;
+        }
       }
     } catch (err: any) {
       throw new Error(`Elasticsearch error: ${err.message}`);
@@ -230,11 +307,13 @@ export class QueryExecutor {
       ...hit._source,
     }));
 
+    // Create a new query with remaining statements
     const remainingQuery: Query = {
       ...query,
       statements: remainingStatements,
     };
 
+    // Process remaining statements using executeQuery
     return this.executeQuery(remainingQuery, data);
   }
 }

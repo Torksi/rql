@@ -325,6 +325,11 @@ dataset = users
 
 # Changelog
 
+## 3.1.7 (2025-01-06)
+
+- Optimized ElasticSearch query execution
+  - Some dedup queries now use inner_hits to get the latest record, which improves performance especially in large datasets
+
 ## 3.1.6 (2025-01-06)
 
 - Removed debug logging from ElasticSearch query execution
