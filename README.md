@@ -325,6 +325,10 @@ dataset = users
 
 # Changelog
 
+## 3.1.6 (2025-01-06)
+
+- Removed debug logging from ElasticSearch query execution
+
 ## 3.1.5 (2025-01-06)
 
 - Optimized ElasticSearch query execution

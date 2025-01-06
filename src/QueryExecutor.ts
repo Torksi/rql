@@ -195,10 +195,6 @@ export class QueryExecutor {
       body.query.bool.must = elasticFilters;
     }
 
-    console.log({ body: JSON.stringify(body) });
-    console.log({ elasticFilters: JSON.stringify(elasticFilters) });
-    console.log({ remainingStatements: JSON.stringify(remainingStatements) });
-
     const allResults: any[] = [];
     let scrollId: string | undefined;
 
