@@ -325,6 +325,10 @@ dataset = users
 
 # Changelog
 
+## 3.1.8 (2025-01-17)
+
+- Fixed small bug in ElasticSearch query execution
+
 ## 3.1.7 (2025-01-06)
 
 - Optimized ElasticSearch query execution

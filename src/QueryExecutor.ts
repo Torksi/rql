@@ -67,6 +67,11 @@ export class QueryExecutor {
   }
 
   private static buildElasticsearchExpression(expr: Expression): any {
+    if (expr.field.includes(".")) {
+      // Nested fields are not supported yet
+      return null;
+    }
+
     switch (expr.operator) {
       case "equals":
         return { term: { [expr.field]: expr.value } };
