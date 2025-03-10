@@ -301,6 +301,36 @@ describe("Test 'filter' statement execution", () => {
 
     expect(result.length).toBe(2);
   });
+
+  test("filter: in", () => {
+    const query = "dataset = endpoints | filter location in ('US', 'GB')";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData()
+    );
+    expect(result.length).toBe(4);
+  });
+
+  test("filter: in - numbers", () => {
+    const query = "dataset = endpoints | filter deviceValue in (1000, 500)";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData()
+    );
+    expect(result.length).toBe(3);
+  });
+
+  test("filter: not in", () => {
+    const query = "dataset = endpoints | filter location not in ('US', 'GB')";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData()
+    );
+    expect(result.length).toBe(1);
+  });
 });
 
 describe("Test 'filter' statement execution with UUIDs", () => {

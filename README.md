@@ -74,6 +74,8 @@ The following operators are supported in RQL:
 | matches, ~=  | Returns true if the regex pattern matches                               |
 | incidr       | Returns true if the IP address is in the CIDR range                     |
 | not incidr   | Returns true if the IP address is not in the CIDR range                 |
+| in           | Returns true if the value is in the specified list                      |
+| not in       | Returns true if the value is not in the specified list                  |
 
 # Statements
 
@@ -261,6 +263,7 @@ The `filter` statement is used to limit the dataset to records that match the sp
 dataset = users
 | filter age > 18 and email not contains "@gmail.com"
 | filter country = "Canada" or country = "Spain"
+| filter role in ("admin", "manager")
 | fields name, age, country, email
 ```
 
@@ -324,6 +327,10 @@ dataset = users
 ```
 
 # Changelog
+
+## 3.2.0 (2025-03-10)
+
+- Added support for `in` and `not in` operators in `filter` statement
 
 ## 3.1.8 (2025-01-17)
 

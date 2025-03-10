@@ -73,4 +73,22 @@ describe("Test 'filter' statement", () => {
       "Invalid filter expression: 'notes equalss 'man''"
     );
   });
+
+  it("should return the correct values for in expression", () => {
+    const query = "dataset = users | filter role in ('admin', 'root')";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(
+      parsedQuery.statements[0].filter!.blocks[0].expressions[0].operator
+    ).toBe("in");
+    expect(
+      parsedQuery.statements[0].filter!.blocks[0].expressions[0].value
+    ).toStrictEqual(["admin", "root"]);
+  });
+
+  it("should fail with unsupported filter value", () => {
+    const query = "dataset = users | filter role in 'man'";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Unsupported filter value: 'man'"
+    );
+  });
 });

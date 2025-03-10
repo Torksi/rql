@@ -36,6 +36,7 @@ export class FilterStatement extends AbstractStatement {
           // If rowValue is null, the expression fails
           if (
             rowValue === null &&
+            operator !== "notIn" &&
             value.toString().toLowerCase() !== "null" &&
             value.toString().toLowerCase() !== "undefined"
           ) {
@@ -204,6 +205,12 @@ export class FilterStatement extends AbstractStatement {
             case "notIncidr":
               blockResult = !ipRangeCheck(rowValue, value.toString());
               break;
+            case "in":
+              blockResult = (value as string[]).includes(`${rowValue}`);
+              break;
+            case "notIn":
+              blockResult = !(value as string[]).includes(`${rowValue}`);
+              break;
             default:
               // This should never happen as the validator should catch this
               throw new Error(`Invalid operator: '${operator}'`);
@@ -245,11 +252,14 @@ export class FilterStatement extends AbstractStatement {
 
   parseFilterExpression(expression: string): QueryFilterExpression {
     const operators: string[] = [
-      "matches",
-      "not contains",
-      "contains",
-      "not incidr",
-      "incidr",
+      // Make sure that any string operators have a space after them to avoid accidental matching with field names
+      "matches ",
+      "not contains ",
+      "contains ",
+      "not incidr ",
+      "incidr ",
+      "not in ",
+      "in ",
       "~=",
       "!=",
       "<=",
@@ -350,6 +360,18 @@ export class FilterStatement extends AbstractStatement {
           operator: "notIncidr",
           value: this.parseFilterValue(value),
         };
+      case "in":
+        return {
+          field,
+          operator: "in",
+          value: this.parseListFilterValue(value),
+        };
+      case "not in":
+        return {
+          field,
+          operator: "notIn",
+          value: this.parseListFilterValue(value),
+        };
       default:
         throw new Error(`Invalid filter expression: '${expression}'`);
     }
@@ -370,5 +392,23 @@ export class FilterStatement extends AbstractStatement {
     } else {
       return value;
     }
+  }
+
+  parseListFilterValue(value: string): string[] {
+    let parsedValue = this.parseFilterValue(value);
+    if (typeof parsedValue !== "string") {
+      throw new Error(`Unsupported filter value: '${value}'`);
+    }
+
+    if (!parsedValue.startsWith("(") || !parsedValue.endsWith(")")) {
+      throw new Error(`Unsupported filter value: '${value}'`);
+    }
+
+    parsedValue = parsedValue.substring(1, parsedValue.length - 1);
+    const parsedList = parsedValue
+      .split(",")
+      .map((v) => v.trim().replace(/^['"](.*)['"]$/, "$1"));
+
+    return parsedList;
   }
 }

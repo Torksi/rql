@@ -19,8 +19,10 @@ export interface QueryFilterExpression {
     | "lessThanOrEquals"
     | "greaterThanOrEquals"
     | "incidr"
-    | "notIncidr";
-  value: string | number | boolean | Date;
+    | "notIncidr"
+    | "in"
+    | "notIn";
+  value: string | number | boolean | Date | string[];
 }
 
 export interface QuerySort {
