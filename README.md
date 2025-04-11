@@ -328,6 +328,10 @@ dataset = users
 
 # Changelog
 
+## 3.2.1 (2025-04-11)
+
+- Fixed bug with `dedup` field parsing
+
 ## 3.2.0 (2025-03-10)
 
 - Added support for `in` and `not in` operators in `filter` statement

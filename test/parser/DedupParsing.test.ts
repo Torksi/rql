@@ -15,11 +15,27 @@ describe("Test 'dedup' statement", () => {
     expect(parsedQuery.statements[0].dedup?.fields[0]).toBe("customer");
   });
 
+  it("should return the correct dedup fields and amount of fields", () => {
+    const query =
+      "dataset = sales_invoices | dedup customer,transaction by createdAt desc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.statements[0].dedup).not.toBe(null);
+    expect(parsedQuery.statements[0].dedup?.fields[0]).toBe("customer");
+    expect(parsedQuery.statements[0].dedup?.fields[1]).toBe("transaction");
+  });
+
   it("should return the correct dedup field", () => {
     const query = "dataset = sales_invoices | dedup customer, createdAt";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(parsedQuery.statements[0].dedup).not.toBe(null);
     expect(parsedQuery.statements[0].dedup?.fields[1]).toBe("createdAt");
+  });
+
+  it("should return the correct amount of dedup fields", () => {
+    const query = "dataset = sales_invoices | dedup customer,createdAt";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(parsedQuery.statements[0].dedup).not.toBe(null);
+    expect(parsedQuery.statements[0].dedup?.fields.length).toBe(2);
   });
 
   it("should fail with invalid dedup sort direction", () => {

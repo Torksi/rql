@@ -96,7 +96,12 @@ export class DedupStatement extends AbstractStatement {
       throw new Error("No fields specified for dedup");
     }
 
-    fields = fields.map((f) => f.trim().replace(/,$/, ""));
+    fields = fields.flatMap((entry) =>
+      entry
+        .split(",")
+        .map((f) => f.trim().replace(/,$/, ""))
+        .filter((f) => f !== "")
+    );
 
     query.statements.push({
       type: "dedup",
