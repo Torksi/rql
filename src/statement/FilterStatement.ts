@@ -9,6 +9,7 @@ import {
 } from "../types";
 import { AbstractStatement } from "./AbstractStatement";
 import { ConfigStatement } from "./ConfigStatement";
+import functionalField from "../functionalField";
 
 export class FilterStatement extends AbstractStatement {
   execute(query: Query, statement: QueryStatement, data: any[]): any[] {
@@ -32,6 +33,10 @@ export class FilterStatement extends AbstractStatement {
           const { field, operator } = expression;
           let { value } = expression;
           let rowValue = dynamicField(field, row);
+
+          if (rowValue === null && field !== null && field.match(/\w+\(.*\)/)) {
+            rowValue = functionalField(field, row);
+          }
 
           // If rowValue is null, the expression fails
           if (

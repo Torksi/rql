@@ -51,6 +51,7 @@ export interface QueryAlter {
   field: string;
   func: string;
   parameters: string[];
+  rawParameters?: string;
 }
 
 export interface QueryConfig {

@@ -2,6 +2,7 @@ import { QueryExecutor } from "../../src/QueryExecutor";
 import { QueryParser } from "../../src/QueryParser";
 import { CustomerTestData } from "../data/CustomerTestData";
 import { DeviceTestData } from "../data/DeviceTestData";
+import { LocationTestData } from "../data/LocationTestData";
 import { UnstrLogTestData } from "../data/UnstrLogTestData";
 import { UrlTestData } from "../data/UrlTestData";
 import { UuidTestData } from "../data/UuidTestData";
@@ -416,5 +417,16 @@ describe("Test 'filter' statement execution for date filtering", () => {
       UnstrLogTestData.getData()
     );
     expect(result.length).toBe(7);
+  });
+
+  test("filter - functional: distance", () => {
+    const query =
+      "dataset = locations | filter distance(lat, lon, 60.1695, 24.9354) < 100";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      LocationTestData.getData()
+    );
+    expect(result.length).toBe(2);
   });
 });

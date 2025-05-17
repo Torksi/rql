@@ -19,7 +19,9 @@ export class SearchStatement extends AbstractStatement {
     if (caseSensitive) {
       return data.filter((row) =>
         Object.values(row).some((value) =>
-          typeof value === "string" ? value.includes(searchKey) : false
+          typeof value === "string"
+            ? value.includes(searchKey)
+            : (value as any).toString().includes(searchKey)
         )
       );
     }
@@ -28,7 +30,7 @@ export class SearchStatement extends AbstractStatement {
       Object.values(row).some((value) =>
         typeof value === "string"
           ? value.toLowerCase().includes(searchKey.toLowerCase())
-          : false
+          : (value as any).toString().includes(searchKey)
       )
     );
   }
