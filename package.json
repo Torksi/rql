@@ -12,7 +12,6 @@
   },
   "license": "GPL-3.0",
   "devDependencies": {
-    "@elastic/elasticsearch": "^8.16.2",
     "@types/jest": "^29.5.2",
     "@typescript-eslint/eslint-plugin": "^5.59.11",
     "@typescript-eslint/parser": "^5.59.11",
@@ -37,7 +36,6 @@
   "description": "",
   "keywords": [
     "rql",
-    "elasticsearch",
     "query",
     "parser",
     "queryparser",
@@ -48,13 +46,5 @@
   ],
   "dependencies": {
     "ip-range-check": "^0.2.0"
-  },
-  "peerDependencies": {
-    "@elastic/elasticsearch": "^8.8.1"
-  },
-  "peerDependenciesMeta": {
-    "@elastic/elasticsearch": {
-      "optional": true
-    }
   }
 }

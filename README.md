@@ -28,32 +28,6 @@
    const result = QueryExecutor.executeQuery(parsedQuery, data); // This will execute the query against the dataset
    ```
 
-## ElasticSearch integration (WIP)
-
-RQL can be used to generate queries for ElasticSearch. The `QueryExecutor` class has built-in support for ElasticSearch, so you can execute RQL queries directly against an ElasticSearch index. Here's an example of how to use RQL with ElasticSearch:
-
-1. Install the ElasticSearch client:
-   - `npm install @elastic/elasticsearch`
-   - `yarn add @elastic/elasticsearch`
-2. Parse query and execute it against ElasticSearch
-
-   ```js
-   import { QueryParser, QueryExecutor } from "@ruhisfi/rql";
-
-   const query =
-     'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email, age | sort age desc | limit 10';
-   const parsedQuery = QueryParser.parseQuery(query); // This will validate the query and convert it into a JS object
-
-   const result = QueryExecutor.executeElasticQuery(
-     elasticSearchClient, // ElasticSearch Client from @elastic/elasticsearch
-     "example_data", // ElasticSearch index
-     parsedQuery //
-   ).then((res) => {
-     console.log(`Found ${res.length} results`);
-     console.log(`Results:`, res);
-   });
-   ```
-
 # Syntax Guide
 
 The query consists of multiple statements separated by the pipe (`|`) character. The statements are case-sensitive, and must be written in lowercase. The query lines can be commented out with `#`. The statements are executed in the order they are written in the query.
@@ -303,6 +277,11 @@ dataset = users
 ```
 
 # Changelog
+
+## 4.0.0 (2025-05-XX)
+
+- Removed ElasticSearch integration
+  - The ElasticSearch integration was removed due to the complexity and performance issues it introduced. The library is now focused on providing a lightweight and efficient query language for data manipulation without the overhead of ElasticSearch.
 
 ## 3.3.0 (2025-05-17)
 
