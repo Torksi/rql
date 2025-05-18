@@ -6,23 +6,44 @@ export default (field: string, data: any) => {
   const match = field.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*)\)$/);
 
   if (!match) {
-    return;
+    return null;
   }
 
   const functionName = match[1];
   const rawArgs = match[2]
     .split(/(?<!\\),/)
     .map((arg) => arg.trim())
-    .filter((arg) => arg.length > 0);
+    .filter((arg) => arg.length > 0)
+    .map((arg) => {
+      let trimmedArg = arg.trim();
+
+      // Remove quotes if present
+      if (trimmedArg.startsWith('"') && trimmedArg.endsWith('"')) {
+        trimmedArg = trimmedArg.slice(1, -1);
+      } else if (trimmedArg.startsWith("'") && trimmedArg.endsWith("'")) {
+        trimmedArg = trimmedArg.slice(1, -1);
+      }
+
+      return trimmedArg;
+    });
 
   const args = match[2]
     .split(/(?<!\\),/)
     .map((arg) => arg.trim())
     .filter((arg) => arg.length > 0)
     .map((arg) => {
-      const df = dynamicField(arg, data);
+      let trimmedArg = arg.trim();
+
+      // Remove quotes if present
+      if (trimmedArg.startsWith('"') && trimmedArg.endsWith('"')) {
+        trimmedArg = trimmedArg.slice(1, -1);
+      } else if (trimmedArg.startsWith("'") && trimmedArg.endsWith("'")) {
+        trimmedArg = trimmedArg.slice(1, -1);
+      }
+
+      const df = dynamicField(trimmedArg, data);
       if (df !== null) return df;
-      return arg;
+      return trimmedArg;
     });
 
   switch (functionName) {
@@ -105,7 +126,7 @@ export default (field: string, data: any) => {
       const [url] = args;
       try {
         const parsedUrl = new URL(
-          !url.match(/^http[s]?:\/\//) ? "http://" + url : url
+          !url.match(/^.{1,10}?:\/\//) ? "http://" + url : url
         );
         return parsedUrl.hostname;
       } catch (err) {
@@ -124,16 +145,16 @@ export default (field: string, data: any) => {
       return Math.floor(num);
     }
     case "get": {
-      if (args.length !== 1) {
+      if (rawArgs.length !== 1) {
         return null;
       }
-      const [str] = args;
+      const [str] = rawArgs;
 
-      if (!str || (typeof str !== "string" && !Array.isArray(str))) {
-        return null;
+      if (dynamicField(str, data) !== null) {
+        return dynamicField(str, data);
       }
 
-      return str;
+      return null;
     }
     case "get_array": {
       if (args.length !== 2) {
@@ -244,6 +265,11 @@ export default (field: string, data: any) => {
       if (isNaN(start) || isNaN(end)) {
         return null;
       }
+
+      if (typeof str !== "string") {
+        return null;
+      }
+
       return str.substring(start, end);
     }
     case "subtract": {
@@ -269,7 +295,14 @@ export default (field: string, data: any) => {
         return null;
       }
       const [value] = args;
-      return Number(value);
+
+      const result = Number(value);
+
+      if (isNaN(result)) {
+        return null;
+      }
+
+      return result;
     }
     case "to_string": {
       if (args.length !== 1) {

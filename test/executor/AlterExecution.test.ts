@@ -341,6 +341,6 @@ describe("Test 'alter' statement execution", () => {
     const query = "dataset = test | alter testValue = to_number(value)";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, [{ value: "test" }]);
-    expect(result[0].testValue).toBe(NaN);
+    expect(result[0].testValue).toBe(null);
   });
 });
