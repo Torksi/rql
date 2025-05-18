@@ -91,32 +91,7 @@ The `alter` statement is used to create new or overwrite existing fields in the 
 
 ### Functions
 
-| Function         | Syntax                                     | Description                                         |
-| ---------------- | ------------------------------------------ | --------------------------------------------------- |
-| add              | `add(<field1>, <field2 OR number>)`        | Adds two values                                     |
-| base64_decode    | `base64_decode(<field>)`                   | Decodes base64 string                               |
-| base64_encode    | `base64_encode(<field>)`                   | Encodes string to base64                            |
-| ceil             | `ceil(<field>)`                            | Rounds value up to nearest integer                  |
-| coalesce         | `coalesce(<field1>, <field2>, ...)`        | Returns first non-null value                        |
-| distance         | `distance(<lat1>, <lon1>, <lat2>, <lon2>)` | Calculates distance between two geographical points |
-| extract_url_host | `extract_url_host(<field>)`                | Extracts host from URL                              |
-| floor            | `floor(<field>)`                           | Rounds value down to nearest integer                |
-| get              | `get(<field>)`                             | Gets value                                          |
-| get_array        | `get_array(<field>, <index>)`              | Gets value from array                               |
-| incidr           | `incidr(<field>, <cidr>)`                  | Returns true if IP in CIDR                          |
-| json_parse       | `json_parse(<field>)`                      | Parses JSON string                                  |
-| json_stringify   | `json_stringify(<field>)`                  | Converts value to JSON string                       |
-| length           | `length(<field>)`                          | Returns length of string                            |
-| lowercase        | `lowercase(<field>)`                       | Converts string to lowercase                        |
-| multiply         | `multiply(<field1>, <field2 OR number>)`   | Multiplies values                                   |
-| round            | `round(<field>)`                           | Rounds value to nearest integer                     |
-| split            | `split(<field>, <delimiter>)`              | Splits string into array (`\,` to split on comma)   |
-| substring        | `substring(<field>, <start>, <end>)`       | Extracts substring                                  |
-| subtract         | `subtract(<field1>, <field2 OR number>)`   | Subtracts values                                    |
-| to_date          | `to_date(<field>)`                         | Converts value to date                              |
-| to_string        | `to_string(<field>)`                       | Converts value to string                            |
-| trim             | `trim(<field>)`                            | Trims whitespace from start and end                 |
-| uppercase        | `uppercase(<field>)`                       | Converts string to uppercase                        |
+Supported functions can be found in the documentation: [RQL Docs - Functions](https://rql.ruhis.fi/#/functions/)
 
 ### Examples
 

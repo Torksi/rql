@@ -101,6 +101,8 @@ distance (<string> | <integer>, <string> | <integer>, <string> | <integer>, <str
 
 ### Example
 
+Returns all records within 100 km of the specified latitude and longitude (60.1695, 24.9354).
+
 ```
 dataset = example | filter distance(lat, lon, 60.1695, 24.9354) < 100
 ```
@@ -152,6 +154,8 @@ get (<string>)
 
 ### Example
 
+Retrieves the value of `user.username` and saves it to `username`.
+
 ```
 dataset = example
 | alter username = get(user.username)
@@ -168,6 +172,8 @@ get_array (<string>, <integer>)
 ```
 
 ### Example
+
+Retrieves the third element and saves it to `third`, and the second last element and saves it to `second_last`.
 
 ```
 dataset = example
