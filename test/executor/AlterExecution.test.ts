@@ -284,7 +284,7 @@ describe("Test 'alter' statement execution", () => {
       parsedQuery,
       CustomerTestData.getData()
     );
-    expect(result[0].testValue).toBe(0);
+    expect(result[0].testValue).toBe(null);
   });
 
   test("alter: add - invalid dynamic field", () => {
@@ -295,7 +295,7 @@ describe("Test 'alter' statement execution", () => {
       parsedQuery,
       CustomerTestData.getData()
     );
-    expect(result[0].testValue).toBe(200);
+    expect(result[0].testValue).toBe(null);
   });
 
   test("alter: subtract - invalid dynamic field", () => {
@@ -306,7 +306,7 @@ describe("Test 'alter' statement execution", () => {
       parsedQuery,
       CustomerTestData.getData()
     );
-    expect(result[0].testValue).toBe(200);
+    expect(result[0].testValue).toBe(null);
   });
 
   test("alter: to_number - numeric", () => {
@@ -341,6 +341,6 @@ describe("Test 'alter' statement execution", () => {
     const query = "dataset = test | alter testValue = to_number(value)";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(parsedQuery, [{ value: "test" }]);
-    expect(result[0].testValue).toBe(NaN);
+    expect(result[0].testValue).toBe(null);
   });
 });
