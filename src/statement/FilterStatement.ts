@@ -34,7 +34,11 @@ export class FilterStatement extends AbstractStatement {
           let { value } = expression;
           let rowValue = dynamicField(field, row);
 
-          if (rowValue === null && field !== null && field.match(/^[a-zA-Z_]\w*\(([^()]*|[^()]*\([^()]*\))*\)$/)) {
+          if (
+            rowValue === null &&
+            field !== null &&
+            field.match(/^[a-zA-Z_]\w*\(([^()]*|[^()]*\([^()]*\))*\)$/)
+          ) {
             rowValue = functionalField(field, row);
           }
 
@@ -67,6 +71,14 @@ export class FilterStatement extends AbstractStatement {
             ) {
               value = new Date(value);
             }
+          }
+
+          if (
+            value !== null &&
+            typeof value === "string" &&
+            value.match(/^[a-zA-Z_]\w*\(([^()]*|[^()]*\([^()]*\))*\)$/)
+          ) {
+            value = functionalField(value, row);
           }
 
           // Relative date parsing
