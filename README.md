@@ -4,7 +4,10 @@
 
 ---
 
-**[Documentation](https://rql.ruhis.fi/)** | **[npm](https://www.npmjs.com/package/@ruhisfi/rql)**
+<p align="center">
+  <a href="https://rql.ruhis.fi/#/">Documentation</a> 
+  | <a href="https://www.npmjs.com/package/@ruhisfi/rql">npm</a>
+</p>
 
 ---
 
