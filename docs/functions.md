@@ -1,5 +1,7 @@
 # Functions
 
+Functions can be used to manipulate data in various ways. Below is a list of available functions along with their syntax and examples.
+
 ## add
 
 The `add` function adds two numbers together.
