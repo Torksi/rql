@@ -419,14 +419,45 @@ describe("Test 'filter' statement execution for date filtering", () => {
     expect(result.length).toBe(7);
   });
 
-  test("filter - functional: distance", () => {
+  test("filter - functional: geo_distance", () => {
     const query =
-      "dataset = locations | filter distance(lat, lon, 60.1695, 24.9354) < 100";
+      "dataset = locations | filter geo_distance(lat, lon, 60.1695, 24.9354) < 100";
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
       LocationTestData.getData()
     );
     expect(result.length).toBe(2);
+  });
+
+  test("filter - functional - reversed: to_date", () => {
+    const query = "dataset = example | filter time = to_date('2024-04-13')";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, [
+      {
+        time: "2024-04-13T00:00:00.000Z",
+      },
+      {
+        time: "2024-04-14T00:00:00.000Z",
+      },
+    ]);
+    expect(result[0].time).toBe("2024-04-13T00:00:00.000Z");
+  });
+
+  test("filter - functional - reversed: base64_encode", () => {
+    const query =
+      "dataset = example | filter message = base64_encode('Hello World!')";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(parsedQuery, [
+      {
+        id: 1,
+        message: "SGkgbW9tIQ==",
+      },
+      {
+        id: 2,
+        message: "SGVsbG8gV29ybGQh",
+      },
+    ]);
+    expect(result[0].id).toBe(2);
   });
 });

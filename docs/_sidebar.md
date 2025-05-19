@@ -1,3 +1,5 @@
 - [Overview](/)
+- [Get Started](/get-started/)
 - [Statements](/statements/)
 - [Functions](/functions/)
+- [Examples](/examples/)

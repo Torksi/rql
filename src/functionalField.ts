@@ -1,5 +1,6 @@
 import dynamicField from "./dynamicField";
 import ipRangeCheck from "ip-range-check";
+import { createHash } from "crypto";
 
 export default (field: string, data: any) => {
   // Match the function name and its arguments using regex
@@ -58,6 +59,20 @@ export default (field: string, data: any) => {
       }
       return num1 + num2;
     }
+    case "ago": {
+      if (args.length !== 1) {
+        return null;
+      }
+
+      const [dateString] = args;
+
+      const parsed = parseRelativeTime(dateString, "past");
+      if (!parsed) {
+        return null;
+      }
+
+      return parsed;
+    }
     case "base64_decode": {
       if (args.length !== 1) {
         return null;
@@ -94,31 +109,6 @@ export default (field: string, data: any) => {
       }
       return null;
     }
-    case "distance": {
-      if (args.length !== 4) {
-        return null;
-      }
-
-      const [lat1, lon1, lat2, lon2] = args.map((arg) => parseFloat(arg));
-      if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
-        return null;
-      }
-
-      const R = 6371; // Radius of the Earth in kilometers
-      const toRadians = (d: number) => (d * Math.PI) / 180;
-      const dLat = toRadians(lat2 - lat1);
-      const dLon = toRadians(lon2 - lon1);
-
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRadians(lat1)) *
-          Math.cos(toRadians(lat2)) *
-          Math.sin(dLon / 2) ** 2;
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-      return R * c;
-    }
     case "extract_url_host": {
       if (args.length !== 1) {
         return null;
@@ -143,6 +133,122 @@ export default (field: string, data: any) => {
         return null;
       }
       return Math.floor(num);
+    }
+    case "fnv1a": {
+      if (args.length !== 1) {
+        return null;
+      }
+
+      const [str] = args;
+
+      let hash = 0x811c9dc5;
+      for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193);
+      }
+      return hash >>> 0;
+    }
+    case "future": {
+      if (args.length !== 1) {
+        return null;
+      }
+
+      const [dateString] = args;
+
+      const parsed = parseRelativeTime(dateString, "future");
+      if (!parsed) {
+        return null;
+      }
+
+      return parsed;
+    }
+    case "geo_distance": {
+      if (args.length !== 4) {
+        return null;
+      }
+
+      const [lat1, lon1, lat2, lon2] = args.map((arg) => parseFloat(arg));
+      if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
+        return null;
+      }
+
+      const R = 6371; // Radius of the Earth in kilometers
+      const toRadians = (d: number) => (d * Math.PI) / 180;
+      const dLat = toRadians(lat2 - lat1);
+      const dLon = toRadians(lon2 - lon1);
+
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRadians(lat1)) *
+          Math.cos(toRadians(lat2)) *
+          Math.sin(dLon / 2) ** 2;
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    }
+    case "geo_in_polygon": {
+      if (args.length < 3) {
+        return null;
+      }
+
+      const [lat, lon] = args;
+      const latNum = parseFloat(lat);
+      const lonNum = parseFloat(lon);
+
+      // concat all rest args to a single polygon string
+      let polygon = args.slice(2).join(",").replace(/\\,/g, ",");
+
+      if (
+        (polygon.startsWith("'") && polygon.endsWith("'")) ||
+        (polygon.startsWith('"') && polygon.endsWith('"'))
+      ) {
+        polygon = polygon.slice(1, -1);
+      }
+
+      if (isNaN(latNum) || isNaN(lonNum)) {
+        return null;
+      }
+
+      let parsedPolygon;
+      try {
+        parsedPolygon = JSON.parse(polygon);
+      } catch (err) {
+        return null;
+      }
+
+      if (
+        !parsedPolygon ||
+        parsedPolygon.type !== "Polygon" ||
+        !Array.isArray(parsedPolygon.coordinates) ||
+        parsedPolygon.coordinates.length === 0
+      ) {
+        return null;
+      }
+
+      const coordinates = parsedPolygon.coordinates[0]; // exterior ring
+      if (!Array.isArray(coordinates) || coordinates.length < 3) {
+        return null;
+      }
+
+      // Ray-casting algorithm
+      let inside = false;
+      for (
+        let i = 0, j = coordinates.length - 1;
+        i < coordinates.length;
+        j = i++
+      ) {
+        const [xi, yi] = coordinates[i];
+        const [xj, yj] = coordinates[j];
+
+        const intersect =
+          yi > latNum !== yj > latNum &&
+          lonNum < ((xj - xi) * (latNum - yi)) / (yj - yi) + xi;
+
+        if (intersect) inside = !inside;
+      }
+
+      return inside;
     }
     case "get": {
       if (rawArgs.length !== 1) {
@@ -221,6 +327,16 @@ export default (field: string, data: any) => {
       const [str] = args;
       return str.toLowerCase();
     }
+    case "md5": {
+      if (args.length !== 1) {
+        return null;
+      }
+      const [str] = args;
+
+      const hash = createHash("md5");
+      hash.update(str);
+      return hash.digest("hex");
+    }
     case "multiply": {
       if (args.length !== 2) {
         return null;
@@ -232,6 +348,9 @@ export default (field: string, data: any) => {
       }
       return num1 * num2;
     }
+    case "now": {
+      return new Date();
+    }
     case "round": {
       if (args.length !== 1) {
         return null;
@@ -242,6 +361,26 @@ export default (field: string, data: any) => {
         return null;
       }
       return Math.round(num);
+    }
+    case "sha1": {
+      if (args.length !== 1) {
+        return null;
+      }
+      const [str] = args;
+
+      const hash = createHash("sha1");
+      hash.update(str);
+      return hash.digest("hex");
+    }
+    case "sha256": {
+      if (args.length !== 1) {
+        return null;
+      }
+      const [str] = args;
+
+      const hash = createHash("sha256");
+      hash.update(str);
+      return hash.digest("hex");
     }
     case "split": {
       if (args.length !== 2) {
@@ -335,4 +474,45 @@ export default (field: string, data: any) => {
     default:
       throw new Error(`Unknown function: ${functionName}.`);
   }
+};
+
+const parseRelativeTime = (
+  timeString: string,
+  direction: "future" | "past"
+) => {
+  const relativeDateRegex = /^(\d+)([dhms])$/;
+  const relativeDateMatch = timeString
+    .toString()
+    .trim()
+    .match(relativeDateRegex);
+
+  if (relativeDateMatch) {
+    const now = new Date();
+    const relativeDate = new Date(now);
+
+    const dateVal = parseInt(relativeDateMatch[1], 10);
+    const unit = relativeDateMatch[2];
+    const sign = direction === "past" ? -1 : 1;
+
+    switch (unit) {
+      case "d":
+        relativeDate.setDate(relativeDate.getDate() + sign * dateVal);
+        break;
+      case "h":
+        relativeDate.setHours(relativeDate.getHours() + sign * dateVal);
+        break;
+      case "m":
+        relativeDate.setMinutes(relativeDate.getMinutes() + sign * dateVal);
+        break;
+      case "s":
+        relativeDate.setSeconds(relativeDate.getSeconds() + sign * dateVal);
+        break;
+      default:
+        throw new Error(`Invalid relative date unit: '${unit}'`);
+    }
+
+    return relativeDate;
+  }
+
+  return null;
 };
