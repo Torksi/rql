@@ -210,6 +210,17 @@ export class FilterStatement extends AbstractStatement {
             case "matches":
               // eslint-disable-next-line no-case-declarations
               try {
+                const regexParts = value.toString().match(/^\/(.+)\/([a-z]*)$/);
+
+                if (regexParts) {
+                  const pattern = regexParts[1];
+                  const flags = regexParts[2];
+                  const regex = new RegExp(pattern, flags);
+
+                  blockResult = regex.test(rowValue.toString());
+                  break;
+                }
+
                 const regex = new RegExp(value.toString());
                 blockResult = regex.test(rowValue.toString());
               } catch (e) {

@@ -287,7 +287,7 @@ dataset = users
 
 # Changelog
 
-## 4.0.0 (2025-05-XX)
+## 4.0.0 (2025-06-02)
 
 - Removed ElasticSearch integration
   - The ElasticSearch integration was removed due to the complexity and performance issues it introduced. The library is now focused on providing a lightweight and efficient query language for data manipulation without the overhead of ElasticSearch.
@@ -301,6 +301,7 @@ dataset = users
   - `sha1()`
   - `sha256()`
 - Renamed `distance()` to `geo_distance()`
+- Fixed bug with `matches` filter not handling regex flags properly
 
 ## 3.3.0 (2025-05-17)
 
