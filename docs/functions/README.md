@@ -20,6 +20,25 @@ dataset = example
 | alter my_field_number = add(my_number, 2)
 ```
 
+## ago
+
+The `ago` function returns a date that is a specified time in the past.
+
+### Syntax
+
+```
+ago (<string>)
+```
+
+### Example
+
+Retrieves records from the last 7 days.
+
+```
+dataset = example
+| filter timestamp >= ago("7d")
+```
+
 ## base64_decode
 
 The `base64_decode` function decodes a base64 encoded string.
@@ -89,24 +108,6 @@ dataset = example
 | alter username = coalesce(osActorPrimaryUsername, actorPrimaryUsername, causalityActorPrimaryUsername)
 ```
 
-## distance
-
-The `distance` function calculates the distance between two geographical points specified by their latitude and longitude. The result is returned in kilometers.
-
-### Syntax
-
-```
-distance (<string> | <integer>, <string> | <integer>, <string> | <integer>, <string> | <integer>)
-```
-
-### Example
-
-Returns all records within 100 km of the specified latitude and longitude (60.1695, 24.9354).
-
-```
-dataset = example | filter distance(lat, lon, 60.1695, 24.9354) < 100
-```
-
 ## extract_url_host
 
 The `extract_url_host` function extracts the hostname from an URL.
@@ -140,6 +141,78 @@ floor (<integer> | <string>)
 dataset = example
 | alter my_number = floor(1.8)
 | alter floored_field = floor(another_field)
+```
+
+## fnv1a
+
+The `fnv1a` function computes the FNV-1a hash of a string. FNV-1a is a non-cryptographic hash function that is extremely fast to compute and has a very low collision rate. If possible, use `fnv1a` instead of `md5`, `sha1`, or `sha256` for hashing strings. It is particularly useful for hashing large datasets or when performance is a concern.
+
+### Syntax
+
+```
+fnv1a (<string>)
+```
+
+### Example
+
+```
+dataset = example
+| alter fnv1a_hash = fnv1a(my_string)
+```
+
+## future
+
+The `future` function returns a date that is a specified time in the future.
+
+### Syntax
+
+```
+future (<string>)
+```
+
+### Example
+
+Retrieves records from the next 7 days.
+
+```
+dataset = example
+| filter timestamp >= future("7d")
+```
+
+## geo_distance
+
+The `geo_distance` function calculates the distance between two geographical points specified by their latitude and longitude. The result is returned in kilometers.
+
+### Syntax
+
+```
+geo_distance (<string> | <integer>, <string> | <integer>, <string> | <integer>, <string> | <integer>)
+```
+
+### Example
+
+Returns all records within 100 km of the specified latitude and longitude (60.1695, 24.9354).
+
+```
+dataset = example | filter geo_distance(lat, lon, 60.1695, 24.9354) < 100
+```
+
+## geo_in_polygon
+
+The `geo_in_polygon` function checks if a geographical point specified by its latitude and longitude is within a given polygon. Polygons are defined using the [GeoJSON format](https://tools.ietf.org/html/rfc7946).
+
+### Syntax
+
+```
+geo_in_polygon (<string> | <integer>, <string> | <integer>, <string>)
+```
+
+### Example
+
+Returns all records where the geographical point (lat, lon) is within the specified polygon.
+
+```
+dataset = example | filter geo_in_polygon(lat, lon, '{"coordinates":[[[24.8708,60.1895],[24.8708,60.1340],[24.9963,60.1340],[24.9963,60.1895],[24.8708,60.1895]]],"type":"Polygon"}')
 ```
 
 ## get
@@ -267,6 +340,23 @@ dataset = example
 | alter my_string_lowercase = lowercase(my_string)
 ```
 
+## md5
+
+The `md5` function computes the MD5 hash of a string.
+
+### Syntax
+
+```
+md5 (<string>)
+```
+
+### Example
+
+```
+dataset = example
+| alter md5_hash = md5(my_string)
+```
+
 ## multiply
 
 The `multiply` function multiplies two numbers together.
@@ -285,6 +375,25 @@ dataset = example
 | alter my_field_number = multiply(my_number, 2)
 ```
 
+## now
+
+The `now` function returns the current date and time.
+
+### Syntax
+
+```
+now ()
+```
+
+### Example
+
+Retrieves records from the future.
+
+```
+dataset = example
+| filter timestamp >= now()
+```
+
 ## round
 
 The `round` function rounds a number to the nearest integer.
@@ -301,6 +410,40 @@ round (<integer> | <string>)
 dataset = example
 | alter my_number = round(1.5)
 | alter my_field_number = round(my_number)
+```
+
+## sha1
+
+The `sha1` function computes the SHA-1 hash of a string.
+
+### Syntax
+
+```
+sha1 (<string>)
+```
+
+### Example
+
+```
+dataset = example
+| alter sha1_hash = sha1(my_string)
+```
+
+## sha256
+
+The `sha256` function computes the SHA-256 hash of a string.
+
+### Syntax
+
+```
+sha256 (<string>)
+```
+
+### Example
+
+```
+dataset = example
+| alter sha256_hash = sha256(my_string)
 ```
 
 ## split

@@ -34,7 +34,11 @@ export class FilterStatement extends AbstractStatement {
           let { value } = expression;
           let rowValue = dynamicField(field, row);
 
-          if (rowValue === null && field !== null && field.match(/^[a-zA-Z_]\w*\(([^()]*|[^()]*\([^()]*\))*\)$/)) {
+          if (
+            rowValue === null &&
+            field !== null &&
+            field.match(/^[a-zA-Z_]\w*\(([^()]*|[^()]*\([^()]*\))*\)$/)
+          ) {
             rowValue = functionalField(field, row);
           }
 
@@ -67,6 +71,14 @@ export class FilterStatement extends AbstractStatement {
             ) {
               value = new Date(value);
             }
+          }
+
+          if (
+            value !== null &&
+            typeof value === "string" &&
+            value.match(/^[a-zA-Z_]\w*\(([^()]*|[^()]*\([^()]*\))*\)$/)
+          ) {
+            value = functionalField(value, row);
           }
 
           // Relative date parsing
@@ -198,6 +210,17 @@ export class FilterStatement extends AbstractStatement {
             case "matches":
               // eslint-disable-next-line no-case-declarations
               try {
+                const regexParts = value.toString().match(/^\/(.+)\/([a-z]*)$/);
+
+                if (regexParts) {
+                  const pattern = regexParts[1];
+                  const flags = regexParts[2];
+                  const regex = new RegExp(pattern, flags);
+
+                  blockResult = regex.test(rowValue.toString());
+                  break;
+                }
+
                 const regex = new RegExp(value.toString());
                 blockResult = regex.test(rowValue.toString());
               } catch (e) {

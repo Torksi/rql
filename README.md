@@ -2,6 +2,15 @@
 
 `RQL` (Ruhis Query Language) is a powerful library designed to simplify the process of filtering, sorting, and aggregating large amounts of data. With RQL, you can effortlessly extract valuable insights from complex datasets, making data analysis and manipulation tasks more efficient. RQL was initially developed for an internal SIEM project, so it is well suited for security-related use cases, but it can be used for any type of data.
 
+---
+
+<p align="center">
+  <a href="https://rql.ruhis.fi/#/">Documentation</a> 
+  | <a href="https://www.npmjs.com/package/@ruhisfi/rql">npm</a>
+</p>
+
+---
+
 ## Key Features
 
 - **Simple and intuitive syntax** - RQL is designed to be easy to learn and use. The syntax is similar to [KQL](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) or [XQL](https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-XQL-Language-Reference/Get-Started-with-XQL), but with a few key differences that make it more intuitive and powerful.
@@ -26,32 +35,6 @@
      'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email, age | sort age desc | limit 10';
    const parsedQuery = QueryParser.parseQuery(query); // This will validate the query and convert it into a JS object
    const result = QueryExecutor.executeQuery(parsedQuery, data); // This will execute the query against the dataset
-   ```
-
-## ElasticSearch integration (WIP)
-
-RQL can be used to generate queries for ElasticSearch. The `QueryExecutor` class has built-in support for ElasticSearch, so you can execute RQL queries directly against an ElasticSearch index. Here's an example of how to use RQL with ElasticSearch:
-
-1. Install the ElasticSearch client:
-   - `npm install @elastic/elasticsearch`
-   - `yarn add @elastic/elasticsearch`
-2. Parse query and execute it against ElasticSearch
-
-   ```js
-   import { QueryParser, QueryExecutor } from "@ruhisfi/rql";
-
-   const query =
-     'dataset = example_data | filter name = "John" or country = "Finland" | fields name, country, city, email, age | sort age desc | limit 10';
-   const parsedQuery = QueryParser.parseQuery(query); // This will validate the query and convert it into a JS object
-
-   const result = QueryExecutor.executeElasticQuery(
-     elasticSearchClient, // ElasticSearch Client from @elastic/elasticsearch
-     "example_data", // ElasticSearch index
-     parsedQuery //
-   ).then((res) => {
-     console.log(`Found ${res.length} results`);
-     console.log(`Results:`, res);
-   });
    ```
 
 # Syntax Guide
@@ -303,6 +286,22 @@ dataset = users
 ```
 
 # Changelog
+
+## 4.0.0 (2025-06-02)
+
+- Removed ElasticSearch integration
+  - The ElasticSearch integration was removed due to the complexity and performance issues it introduced. The library is now focused on providing a lightweight and efficient query language for data manipulation without the overhead of ElasticSearch.
+- Added functions:
+  - `ago()`
+  - `fnv1a()`
+  - `future()`
+  - `geo_in_polygon()`
+  - `md5()`
+  - `now()`
+  - `sha1()`
+  - `sha256()`
+- Renamed `distance()` to `geo_distance()`
+- Fixed bug with `matches` filter not handling regex flags properly
 
 ## 3.3.0 (2025-05-17)
 
