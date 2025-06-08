@@ -91,4 +91,12 @@ describe("Test 'filter' statement", () => {
       "Unsupported filter value: 'man'"
     );
   });
+
+  it("shouldn't be treated as list even if the field name contains 'in'", () => {
+    const query = "dataset = unifi_flows | filter _ctx.domain != null";
+    const parsedQuery = QueryParser.parseQuery(query);
+    expect(
+      parsedQuery.statements[0].filter!.blocks[0].expressions[0].field
+    ).toBe("_ctx.domain");
+  });
 });

@@ -281,13 +281,13 @@ export class FilterStatement extends AbstractStatement {
   parseFilterExpression(expression: string): QueryFilterExpression {
     const operators: string[] = [
       // Make sure that any string operators have a space after them to avoid accidental matching with field names
-      "matches ",
-      "not contains ",
-      "contains ",
-      "not incidr ",
-      "incidr ",
-      "not in ",
-      "in ",
+      " matches ",
+      " not contains ",
+      " contains ",
+      " not incidr ",
+      " incidr ",
+      " not in ",
+      " in ",
       "~=",
       "!=",
       "<=",
@@ -424,6 +424,7 @@ export class FilterStatement extends AbstractStatement {
 
   parseListFilterValue(value: string): string[] {
     let parsedValue = this.parseFilterValue(value);
+
     if (typeof parsedValue !== "string") {
       throw new Error(`Unsupported filter value: '${value}'`);
     }

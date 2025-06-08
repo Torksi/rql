@@ -287,6 +287,10 @@ dataset = users
 
 # Changelog
 
+## 4.0.1 (2025-06-08)
+
+- Fixed bug with `filter` statement treating field names ending with `in` or some other operators as list filter
+
 ## 4.0.0 (2025-06-02)
 
 - Removed ElasticSearch integration
