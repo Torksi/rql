@@ -122,8 +122,7 @@ dataset = logins
 
 // Returns the amount of logins per country
 dataset = logins
-| config grouping = country
-| comp count correlationId as logins
+| comp count correlationId as logins by country
 ```
 
 ## config
@@ -287,7 +286,7 @@ dataset = users
 
 # Changelog
 
-## 4.1.1 (2025-10-14)
+## 4.1.0 (2025-10-14)
 
 - Deprecated `grouping` option in `config` statement
 - Added `by [field]` argument to `comp` statement to allow grouping by a field
