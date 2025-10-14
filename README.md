@@ -286,6 +286,10 @@ dataset = users
 
 # Changelog
 
+## 4.1.1 (2025-10-14)
+
+- Fixed bug with invalid return field names in `comp` statement
+
 ## 4.1.0 (2025-10-14)
 
 - Deprecated `grouping` option in `config` statement

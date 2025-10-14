@@ -45,7 +45,7 @@ export class CompStatement extends AbstractStatement {
 
       if (grouping || groupingDefinedInComp) {
         const groupingFieldKey = grouping ? grouping : groupingFieldInComp;
-        statsRow[groupingFieldKey.replaceAll(".", "_")] = groupKey;
+        statsRow[groupingFieldKey.replace(/\./g, "_")] = groupKey;
       }
 
       for (const comp of compStatement) {
@@ -170,7 +170,7 @@ export class CompStatement extends AbstractStatement {
       }
 
       if (!returnField) {
-        returnField = `${field}_${func}`;
+        returnField = `${field}_${func}`.replace(/\./g, "_");
       }
 
       baseStatement.comp!.push({
