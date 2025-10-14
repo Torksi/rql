@@ -17,6 +17,13 @@ describe("Test 'comp' statement", () => {
   });
 
   it("should fail with invalid comp", () => {
+    const query = "dataset = logins | comp count userName as test by";
+    expect(() => QueryParser.parseQuery(query)).toThrow(
+      "Invalid comp statement: 'count userName as test by'"
+    );
+  });
+
+  it("should fail with invalid comp", () => {
     const query = "dataset = logins | comp count userName asd userCount";
     expect(() => QueryParser.parseQuery(query)).toThrow(
       "Invalid comp statement: 'count userName asd userCount'"

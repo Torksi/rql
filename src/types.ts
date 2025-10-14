@@ -45,6 +45,7 @@ export interface QueryComp {
   field: string;
   function: string;
   returnField: string;
+  groupingField?: string;
 }
 
 export interface QueryAlter {

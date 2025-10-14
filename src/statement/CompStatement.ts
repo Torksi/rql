@@ -9,10 +9,18 @@ export class CompStatement extends AbstractStatement {
 
     const { grouping } = new ConfigStatement().execute(query, statement, data);
 
+    const groupingDefinedInComp = statement.comp?.some((c) => c.groupingField);
+    const groupingFieldInComp = statement.comp
+      ?.find((c) => c.groupingField)
+      ?.groupingField?.toString();
+
     // Group data if grouping is defined
-    if (grouping) {
+    if (grouping || groupingDefinedInComp) {
       for (const row of data) {
-        const groupKey = dynamicField(grouping, row);
+        const groupKey = dynamicField(
+          grouping ? grouping : groupingFieldInComp,
+          row
+        );
         if (groupKey !== null && groupKey !== undefined) {
           if (!groupedData[groupKey]) {
             groupedData[groupKey] = [];
@@ -35,8 +43,9 @@ export class CompStatement extends AbstractStatement {
     for (const [groupKey, groupData] of Object.entries(groupedData)) {
       const statsRow: { [key: string]: any } = {};
 
-      if (grouping) {
-        statsRow[grouping] = groupKey;
+      if (grouping || groupingDefinedInComp) {
+        const groupingFieldKey = grouping ? grouping : groupingFieldInComp;
+        statsRow[groupingFieldKey.replaceAll(".", "_")] = groupKey;
       }
 
       for (const comp of compStatement) {
@@ -130,23 +139,45 @@ export class CompStatement extends AbstractStatement {
 
     for (const individualStatement of individualStatements) {
       const parts = individualStatement.split(" ");
-      if (parts.length !== 4) {
+      if (parts.length < 2) {
         throw new Error(`Invalid comp statement: '${individualStatement}'`);
       }
 
       const func = parts[0].trim();
       const field = parts[1].trim();
-      const asField = parts[2].trim();
-      const returnField = parts[3].trim();
+      let returnField = "";
+      let groupingField = "";
 
-      if (asField !== "as") {
-        throw new Error(`Invalid comp statement: '${individualStatement}'`);
+      for (let x = 2; x < parts.length; x++) {
+        const part = parts[x].trim();
+        if (part === "as") {
+          const value = parts[x + 1];
+          if (!value) {
+            throw new Error(`Invalid comp statement: '${individualStatement}'`);
+          }
+          returnField = value.trim();
+          x++;
+        } else if (part === "by") {
+          const value = parts[x + 1];
+          if (!value) {
+            throw new Error(`Invalid comp statement: '${individualStatement}'`);
+          }
+          groupingField = value.trim();
+          x++;
+        } else {
+          throw new Error(`Invalid comp statement: '${individualStatement}'`);
+        }
+      }
+
+      if (!returnField) {
+        returnField = `${field}_${func}`;
       }
 
       baseStatement.comp!.push({
         function: func,
         field,
         returnField,
+        groupingField,
       });
     }
 

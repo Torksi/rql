@@ -2,6 +2,7 @@ import { QueryExecutor } from "../../src/QueryExecutor";
 import { QueryParser } from "../../src/QueryParser";
 import { CustomerTestData } from "../data/CustomerTestData";
 import { DeviceTestData } from "../data/DeviceTestData";
+import { LoginTestData } from "../data/LoginTestData";
 
 describe("Test 'comp' statement execution", () => {
   test("comp: count", () => {
@@ -119,6 +120,53 @@ describe("Test 'comp' statement execution", () => {
     expect(result.length).toBe(2);
     expect(result[0].totalUsers).toBe(2);
     expect(result[1].avgValue).toBe(450);
+  });
+
+  test("comp: count - group v2", () => {
+    const query =
+      "dataset = signInLogs | comp count username by location | sort location asc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData()
+    );
+
+    expect(result.length).toBe(2);
+    expect(result[0].username_count).toBe(2);
+    expect(result[0].location).toBe("GB");
+  });
+
+  test("comp: count - group v2, nested field", () => {
+    const query =
+      "dataset = signInLogs | alter username = coalesce(osActorPrimaryUsername, actorPrimaryUsername, causalityActorPrimaryUsername, webUsername) | comp count username by source.ip | sort username asc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      LoginTestData.getData()
+    );
+
+    console.log(result);
+
+    expect(result.length).toBe(3);
+    expect(result[0].source_ip).toBe("192.168.1.1");
+    expect(result[2].username_count).toBe(1);
+  });
+
+  test("comp: count - group v2, nested field, aliases", () => {
+    const query =
+      "dataset = signInLogs | alter username = coalesce(osActorPrimaryUsername, actorPrimaryUsername, causalityActorPrimaryUsername, webUsername) | comp count username by source.ip as logins | sort username asc";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      LoginTestData.getData()
+    );
+
+    console.log(result);
+
+    expect(result.length).toBe(3);
+    expect(result[0].logins).toBe(3);
+    expect(result[1].source_ip).toBe("192.168.1.2");
+    expect(result[1].logins).toBe(1);
   });
 
   test("comp: invalid function", () => {

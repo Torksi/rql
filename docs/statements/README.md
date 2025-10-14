@@ -27,7 +27,7 @@ dataset = products
 
 ### Syntax
 
-`comp <function> <field> as <returnField>`
+`comp <function> <field> [as <returnField>] [by <groupingField>][, <function> <field> [as <returnField>] [by <groupingField>], ...]`
 
 ### Description
 
@@ -58,7 +58,11 @@ dataset = logins
 | filter country = "USA"
 | comp count username as totalUsers, count_distinct username as distinctUsers, earliest _time as firstLogin
 
-// Returns the amount of logins per country
+// Recommended grouping: Returns the amount of logins per country
+dataset = logins
+| comp count correlationId as logins by country
+
+// Deprecated grouping: Returns the amount of logins per country
 dataset = logins
 | config grouping = country
 | comp count correlationId as logins

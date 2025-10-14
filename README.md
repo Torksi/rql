@@ -89,7 +89,7 @@ dataset = products
 
 ### Syntax
 
-`comp <function> <field> as <returnField>`
+`comp <function> <field> [as <returnField>] [by <groupingField>][, <function> <field> [as <returnField>], ...]`
 
 ### Description
 
@@ -141,7 +141,7 @@ The `config` statement is used to set various options for the query execution. R
 | Option         | Description                                                                     | Default |
 | -------------- | ------------------------------------------------------------------------------- | ------- |
 | case_sensitive | Determine whether values are evaluated as case sensitive in `filter` statements | true    |
-| grouping       | Group results by a field in `comp` statement                                    | ''      |
+| grouping       | Deprecated: Group results by a field in `comp` statement                        | ''      |
 
 ### Examples
 
@@ -286,6 +286,11 @@ dataset = users
 ```
 
 # Changelog
+
+## 4.1.1 (2025-10-14)
+
+- Deprecated `grouping` option in `config` statement
+- Added `by [field]` argument to `comp` statement to allow grouping by a field
 
 ## 4.0.1 (2025-06-08)
 
