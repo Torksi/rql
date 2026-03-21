@@ -89,38 +89,55 @@ dataset = products
 
 ### Syntax
 
+**Modern Syntax:**
+`comp <function>([field]) [as <returnField>][, <function>([field]) [as <returnField>], ...] [by <groupingField>[, <groupingField>, ...]]`
+
+**Legacy Syntax:**
 `comp <function> <field> [as <returnField>] [by <groupingField>][, <function> <field> [as <returnField>], ...]`
 
 ### Description
 
-The `comp` statement is used to calculate statistics for results. This function will override other returned records. If used multiple times, the statistics will be merged on one row.
+The `comp` statement is used to calculate statistics and aggregate data. It supports both modern function call syntax with parentheses and the legacy syntax for backward compatibility. You can perform multiple aggregations and group by one or more fields.
 
 ### Functions
 
-| Function       | Description                                                   |
-| -------------- | ------------------------------------------------------------- |
-| avg            | Returns the average value of the field                        |
-| count          | Returns the number of records where field is not null         |
-| count_distinct | Returns the number of distinct values where field is not null |
-| earliest       | Returns the earliest timestamp                                |
-| first          | Returns the first value                                       |
-| last           | Returns the last value                                        |
-| latest         | Returns the latest timestamp                                  |
-| max            | Returns the maximum value                                     |
-| median         | Returns the median value                                      |
-| min            | Returns the minimum value                                     |
-| sum            | Returns the sum of values                                     |
-| to_array       | Returns an array of values                                    |
+| Function              | Description                                                   |
+| --------------------- | ------------------------------------------------------------- |
+| avg(field)            | Returns the average value of the field                        |
+| count()               | Returns the total number of records (all rows)                |
+| count(field)          | Returns the number of records where field is not null         |
+| count_distinct(field) | Returns the number of distinct values where field is not null |
+| earliest(field)       | Returns the earliest timestamp                                |
+| first(field)          | Returns the first value in the group                          |
+| last(field)           | Returns the last value in the group                           |
+| latest(field)         | Returns the latest timestamp                                  |
+| max(field)            | Returns the maximum value                                     |
+| median(field)         | Returns the median value                                      |
+| min(field)            | Returns the minimum value                                     |
+| sum(field)            | Returns the sum of values                                     |
+| to_array(field)       | Returns an array of unique values                             |
 
 ### Examples
 
 ```
-// Returns the total number of users, the number of distinct users and the first login time in the USA
+// Count all events with modern syntax
+dataset = logins
+| comp count() as total_events
+
+// Multiple aggregations
 dataset = logins
 | filter country = "USA"
-| comp count username as totalUsers, count_distinct username as distinctUsers, earliest _time as firstLogin
+| comp count() as total, count_distinct(username) as unique_users, earliest(_time) as first_login
 
-// Returns the amount of logins per country
+// Group by single field
+dataset = logins
+| comp count() as events by country
+
+// Group by multiple fields
+dataset = network_events
+| comp count() as events, count_distinct(username) as unique_users by hostname, src_ip
+
+// Legacy syntax (still supported)
 dataset = logins
 | comp count correlationId as logins by country
 ```
@@ -285,6 +302,10 @@ dataset = users
 ```
 
 # Changelog
+
+## 4.2.0 (2026-03-22)
+
+- Added function style syntax for `comp` statement, while keeping the old syntax for backward compatibility.
 
 ## 4.1.1 (2025-10-14)
 

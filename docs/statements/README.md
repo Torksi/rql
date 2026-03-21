@@ -27,42 +27,96 @@ dataset = products
 
 ### Syntax
 
+**Modern Syntax:**
+
+`comp <function>([field]) [as <returnField>][, <function>([field]) [as <returnField>], ...] [by <groupingField>[, <groupingField>, ...]]`
+
+**Legacy Syntax:**
+
 `comp <function> <field> [as <returnField>] [by <groupingField>][, <function> <field> [as <returnField>] [by <groupingField>], ...]`
 
 ### Description
 
-The `comp` statement is used to calculate statistics for results. This function will override other returned records. If used multiple times, the statistics will be merged on one row.
+The `comp` statement is used to calculate statistics and aggregate data. This statement supports both modern function call syntax with parentheses and the legacy syntax for backward compatibility.
+
+Key features:
+
+- **Multiple aggregations**: Calculate multiple statistics in a single statement
+- **Multiple grouping fields**: Group by one or more fields using comma-separated list
+- **Function call syntax**: Use parentheses for clearer function notation (e.g., `count()`, `max(amount)`)
+- **Flexible counting**: `count()` without parameters counts all rows
+
+**Note:** Rows with null or undefined values in grouping fields are excluded from results.
 
 ### Functions
 
-| Function       | Description                                                   |
-| -------------- | ------------------------------------------------------------- |
-| avg            | Returns the average value of the field                        |
-| count          | Returns the number of records where field is not null         |
-| count_distinct | Returns the number of distinct values where field is not null |
-| earliest       | Returns the earliest timestamp                                |
-| first          | Returns the first value                                       |
-| last           | Returns the last value                                        |
-| latest         | Returns the latest timestamp                                  |
-| max            | Returns the maximum value                                     |
-| median         | Returns the median value                                      |
-| min            | Returns the minimum value                                     |
-| sum            | Returns the sum of values                                     |
-| to_array       | Returns an array of values                                    |
+| Function              | Description                                                   | Example                 |
+| --------------------- | ------------------------------------------------------------- | ----------------------- |
+| avg(field)            | Returns the average value of the field                        | `avg(price)`            |
+| count()               | Returns the total number of records (all rows)                | `count()`               |
+| count(field)          | Returns the number of records where field is not null         | `count(username)`       |
+| count_distinct(field) | Returns the number of distinct values where field is not null | `count_distinct(ip)`    |
+| earliest(field)       | Returns the earliest timestamp                                | `earliest(timestamp)`   |
+| first(field)          | Returns the first value in the group                          | `first(device)`         |
+| last(field)           | Returns the last value in the group                           | `last(device)`          |
+| latest(field)         | Returns the latest timestamp                                  | `latest(timestamp)`     |
+| max(field)            | Returns the maximum value                                     | `max(amount)`           |
+| median(field)         | Returns the median value                                      | `median(response_time)` |
+| min(field)            | Returns the minimum value                                     | `min(amount)`           |
+| sum(field)            | Returns the sum of values                                     | `sum(total)`            |
+| to_array(field)       | Returns an array of unique values                             | `to_array(tags)`        |
 
 ### Examples
 
+**Basic aggregations:**
+
 ```
-// Returns the total number of users, the number of distinct users and the first login time in the USA
+// Count all events
+dataset = logins
+| comp count() as total_events
+
+// Multiple aggregations
 dataset = logins
 | filter country = "USA"
-| comp count username as totalUsers, count_distinct username as distinctUsers, earliest _time as firstLogin
+| comp count() as total, count_distinct(username) as unique_users, earliest(_time) as first_login
+```
 
-// Recommended grouping: Returns the amount of logins per country
+**Single field grouping:**
+
+```
+// Count events by country
 dataset = logins
-| comp count correlationId as logins by country
+| comp count() as events by country
 
-// Deprecated grouping: Returns the amount of logins per country
+// Average and max by customer
+dataset = transactions
+| comp avg(amount) as avg_amount, max(amount) as max_amount by customer
+```
+
+**Multiple field grouping:**
+
+```
+// Group by hostname and source IP
+dataset = network_events
+| comp count() as events, count_distinct(username) as unique_users by hostname, src_ip
+
+// Group by multiple dimensions
+dataset = sales
+| comp sum(amount) as revenue, count() as transactions by region, product_category
+```
+
+**Legacy syntax (still supported):**
+
+```
+// Old-style grouping with 'by' clause
+dataset = logins
+| comp count username by location
+
+// Old-style with alias on grouping
+dataset = logins
+| comp count correlationId by country as logins
+
+// Deprecated config-based grouping
 dataset = logins
 | config grouping = country
 | comp count correlationId as logins

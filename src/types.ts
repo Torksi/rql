@@ -45,7 +45,6 @@ export interface QueryComp {
   field: string;
   function: string;
   returnField: string;
-  groupingField?: string;
 }
 
 export interface QueryAlter {
@@ -96,6 +95,7 @@ export interface QueryStatement {
   alter?: QueryAlter;
   search?: string;
   comp?: QueryComp[];
+  groupingFields?: string[];
 }
 
 export interface Query {

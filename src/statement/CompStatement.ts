@@ -9,24 +9,37 @@ export class CompStatement extends AbstractStatement {
 
     const { grouping } = new ConfigStatement().execute(query, statement, data);
 
-    const groupingDefinedInComp = statement.comp?.some((c) => c.groupingField);
-    const groupingFieldInComp = statement.comp
-      ?.find((c) => c.groupingField)
-      ?.groupingField?.toString();
+    // Get grouping fields from new statement.groupingFields or old config grouping
+    const groupingFields: string[] =
+      statement.groupingFields || (grouping ? [grouping] : []);
 
     // Group data if grouping is defined
-    if (grouping || groupingDefinedInComp) {
+    if (groupingFields.length > 0) {
       for (const row of data) {
-        const groupKey = dynamicField(
-          grouping ? grouping : groupingFieldInComp,
-          row
-        );
-        if (groupKey !== null && groupKey !== undefined) {
-          if (!groupedData[groupKey]) {
-            groupedData[groupKey] = [];
+        // Create composite key from all grouping fields
+        const keyParts: string[] = [];
+        let hasNullValue = false;
+
+        for (const field of groupingFields) {
+          const value = dynamicField(field, row);
+          if (value === null || value === undefined) {
+            hasNullValue = true;
+            break;
           }
-          groupedData[groupKey].push(row);
+          keyParts.push(String(value));
         }
+
+        // Skip rows with null/undefined grouping values
+        if (hasNullValue) {
+          continue;
+        }
+
+        const groupKey = keyParts.join("|||");
+
+        if (!groupedData[groupKey]) {
+          groupedData[groupKey] = [];
+        }
+        groupedData[groupKey].push(row);
       }
     } else {
       // Treat all data as a single group if no grouping is defined
@@ -43,14 +56,24 @@ export class CompStatement extends AbstractStatement {
     for (const [groupKey, groupData] of Object.entries(groupedData)) {
       const statsRow: { [key: string]: any } = {};
 
-      if (grouping || groupingDefinedInComp) {
-        const groupingFieldKey = grouping ? grouping : groupingFieldInComp;
-        statsRow[groupingFieldKey.replace(/\./g, "_")] = groupKey;
+      // Add grouping field values to result
+      if (groupingFields.length > 0) {
+        const keyParts = groupKey.split("|||");
+        for (let i = 0; i < groupingFields.length; i++) {
+          const fieldName = groupingFields[i].replace(/\./g, "_");
+          statsRow[fieldName] = keyParts[i];
+        }
       }
 
       for (const comp of compStatement) {
         if (!comp) {
           throw new Error("Comp statement must have comp");
+        }
+
+        // For count() without field, count all rows
+        if (comp.function === "count" && !comp.field) {
+          statsRow[comp.returnField] = groupData.length;
+          continue;
         }
 
         const values: any[] = (groupData as any[])
@@ -89,15 +112,15 @@ export class CompStatement extends AbstractStatement {
           case "earliest":
             statsRow[comp.returnField] = new Date(
               Math.min(
-                ...values.map((isoString) => new Date(isoString).getTime())
-              )
+                ...values.map((isoString) => new Date(isoString).getTime()),
+              ),
             );
             break;
           case "latest":
             statsRow[comp.returnField] = new Date(
               Math.max(
-                ...values.map((isoString) => new Date(isoString).getTime())
-              )
+                ...values.map((isoString) => new Date(isoString).getTime()),
+              ),
             );
             break;
           case "first":
@@ -111,7 +134,7 @@ export class CompStatement extends AbstractStatement {
               (groupData as any[]).length > 0
                 ? dynamicField(
                     comp.field,
-                    (groupData as any[])[(groupData as any[]).length - 1]
+                    (groupData as any[])[(groupData as any[]).length - 1],
                   )
                 : null;
             break;
@@ -129,56 +152,115 @@ export class CompStatement extends AbstractStatement {
   }
 
   parse(query: Query, statement: string) {
-    const individualStatements = statement.split(",").map((s) => s.trim());
+    // First extract the 'by' clause if it exists
+    // Handle both: "by field1, field2" and old syntax "by field as alias"
+    let groupingFields: string[] = [];
+    let statementWithoutBy = statement;
+    let aliasSuffix = ""; // For old syntax: "by field as alias" where alias is for the comp result
+
+    const byMatch = statement.match(/\s+by\s+(.+)$/i);
+
+    if (byMatch) {
+      const byClause = byMatch[1].trim();
+
+      // Check if there's an "as alias" at the end (old syntax)
+      const byWithAliasMatch = byClause.match(/^(.+?)\s+as\s+(\w+)$/i);
+      if (byWithAliasMatch) {
+        // Old syntax: "by source.ip as logins" means group by source.ip, alias count as logins
+        groupingFields = [byWithAliasMatch[1].trim()];
+        aliasSuffix = ` as ${byWithAliasMatch[2]}`;
+        statementWithoutBy = statement.substring(0, statement.indexOf(" by "));
+      } else {
+        // New syntax: "by field1, field2" or "by field1"
+        groupingFields = byClause.split(",").map((f) => f.trim());
+        statementWithoutBy = statement.substring(0, statement.indexOf(" by "));
+      }
+    }
+
+    // Now parse the comp functions
+    const individualStatements = statementWithoutBy
+      .split(",")
+      .map((s) => s.trim());
     individualStatements[0] = individualStatements[0].substring(4).trim();
 
     const baseStatement: QueryStatement = {
       type: "comp",
       comp: [],
+      groupingFields: groupingFields.length > 0 ? groupingFields : undefined,
     };
 
-    for (const individualStatement of individualStatements) {
-      const parts = individualStatement.split(" ");
-      if (parts.length < 2) {
-        throw new Error(`Invalid comp statement: '${individualStatement}'`);
+    for (let i = 0; i < individualStatements.length; i++) {
+      let individualStatement = individualStatements[i];
+
+      // For old syntax with "by field as alias", apply the alias to the first (and only) comp function
+      if (i === 0 && aliasSuffix && !individualStatement.includes(" as ")) {
+        individualStatement += aliasSuffix;
       }
 
-      const func = parts[0].trim();
-      const field = parts[1].trim();
-      let returnField = "";
-      let groupingField = "";
+      // Parse function call syntax: function(field) as alias
+      // or old syntax: function field as alias
+      const functionCallMatch = individualStatement.match(
+        /^(\w+)\s*\(([^)]*)\)\s*(?:as\s+(\w+))?$/i,
+      );
 
-      for (let x = 2; x < parts.length; x++) {
-        const part = parts[x].trim();
-        if (part === "as") {
-          const value = parts[x + 1];
-          if (!value) {
-            throw new Error(`Invalid comp statement: '${individualStatement}'`);
-          }
-          returnField = value.trim();
-          x++;
-        } else if (part === "by") {
-          const value = parts[x + 1];
-          if (!value) {
-            throw new Error(`Invalid comp statement: '${individualStatement}'`);
-          }
-          groupingField = value.trim();
-          x++;
-        } else {
+      if (functionCallMatch) {
+        // New syntax: count() or count_distinct(username) as events
+        const func = functionCallMatch[1].trim();
+        const field = functionCallMatch[2].trim() || ""; // Empty string for count()
+        const returnField =
+          functionCallMatch[3] ||
+          (field ? `${field}_${func}` : func).replace(/\./g, "_");
+
+        baseStatement.comp!.push({
+          function: func,
+          field,
+          returnField,
+        });
+      } else {
+        // Old syntax: count username as userCount
+        const parts = individualStatement.split(" ");
+        if (parts.length < 1) {
           throw new Error(`Invalid comp statement: '${individualStatement}'`);
         }
-      }
 
-      if (!returnField) {
-        returnField = `${field}_${func}`.replace(/\./g, "_");
-      }
+        const func = parts[0].trim();
+        let field = "";
+        let returnField = "";
 
-      baseStatement.comp!.push({
-        function: func,
-        field,
-        returnField,
-        groupingField,
-      });
+        // Check if there's a field after the function
+        if (parts.length > 1 && parts[1] !== "as") {
+          field = parts[1].trim();
+        }
+
+        // Look for 'as' keyword
+        const asIndex = parts.indexOf("as");
+        if (asIndex !== -1) {
+          if (asIndex + 1 >= parts.length) {
+            throw new Error(`Invalid comp statement: '${individualStatement}'`);
+          }
+          returnField = parts[asIndex + 1].trim();
+
+          // Check if there are any unexpected tokens after 'as returnField'
+          if (asIndex + 2 < parts.length) {
+            throw new Error(`Invalid comp statement: '${individualStatement}'`);
+          }
+        } else {
+          // No 'as' keyword - check if there are unexpected tokens
+          if (parts.length > 2) {
+            throw new Error(`Invalid comp statement: '${individualStatement}'`);
+          }
+        }
+
+        if (!returnField) {
+          returnField = field ? `${field}_${func}`.replace(/\./g, "_") : func;
+        }
+
+        baseStatement.comp!.push({
+          function: func,
+          field,
+          returnField,
+        });
+      }
     }
 
     query.statements.push(baseStatement);

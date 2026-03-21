@@ -10,7 +10,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
     expect(result.length).toBe(1);
     expect(result[0].totalUsers).toBe(5);
@@ -22,7 +22,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
     expect(result.length).toBe(1);
     expect(result[0].totalCountries).toBe(4);
@@ -34,7 +34,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
     expect(result.length).toBe(1);
     expect(result[0].totalCountries).toBe(2);
@@ -46,7 +46,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      CustomerTestData.getData()
+      CustomerTestData.getData(),
     );
 
     expect(result.length).toBe(1);
@@ -63,11 +63,11 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      CustomerTestData.getData()
+      CustomerTestData.getData(),
     );
     expect(result.length).toBe(1);
     expect(result[0].earliestDate.toISOString()).toBe(
-      "2020-01-01T00:00:00.000Z"
+      "2020-01-01T00:00:00.000Z",
     );
     expect(result[0].latestDate.toISOString()).toBe("2020-01-05T00:00:00.000Z");
   });
@@ -78,7 +78,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
     expect(result.length).toBe(1);
     expect(result[0].firstDevice).toBe("mac-1");
@@ -90,7 +90,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
     expect(result.length).toBe(1);
     expect(result[0].devices.length).toBe(3);
@@ -102,7 +102,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
     expect(result.length).toBe(2);
     expect(result[0].totalUsers).toBe(2);
@@ -114,7 +114,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
 
     expect(result.length).toBe(2);
@@ -128,7 +128,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      DeviceTestData.getData()
+      DeviceTestData.getData(),
     );
 
     expect(result.length).toBe(2);
@@ -142,7 +142,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      LoginTestData.getData()
+      LoginTestData.getData(),
     );
 
     console.log(result);
@@ -158,7 +158,7 @@ describe("Test 'comp' statement execution", () => {
     const parsedQuery = QueryParser.parseQuery(query);
     const result = QueryExecutor.executeQuery(
       parsedQuery,
-      LoginTestData.getData()
+      LoginTestData.getData(),
     );
 
     console.log(result);
@@ -173,7 +173,116 @@ describe("Test 'comp' statement execution", () => {
     const query = "dataset = signInLogs | comp countt username as totalUsers";
     const parsedQuery = QueryParser.parseQuery(query);
     expect(() =>
-      QueryExecutor.executeQuery(parsedQuery, DeviceTestData.getData())
+      QueryExecutor.executeQuery(parsedQuery, DeviceTestData.getData()),
     ).toThrow("Invalid comp function: 'countt'");
+  });
+
+  // New syntax tests
+  test("comp: count() without field parameter", () => {
+    const query = "dataset = signInLogs | comp count() as total_events";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData(),
+    );
+    expect(result.length).toBe(1);
+    expect(result[0].total_events).toBe(5);
+  });
+
+  test("comp: count() by single field", () => {
+    const query = "dataset = signInLogs | comp count() as events by location";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData(),
+    );
+    expect(result.length).toBe(2);
+    expect(result.some((r) => r.events === 2)).toBe(true);
+    expect(result.some((r) => r.location === "US")).toBe(true);
+    expect(result.some((r) => r.location === "GB")).toBe(true);
+  });
+
+  test("comp: count_distinct() with by clause", () => {
+    const query =
+      "dataset = signInLogs | comp count_distinct(username) as unique_users by location";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData(),
+    );
+    expect(result.length).toBe(2);
+    expect(result.every((r) => r.unique_users > 0)).toBe(true);
+  });
+
+  test("comp: multiple functions with single grouping", () => {
+    const query =
+      "dataset = signInLogs | comp count() as events, count_distinct(username) as unique_users by location";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData(),
+    );
+    expect(result.length).toBe(2);
+    expect(result[0]).toHaveProperty("events");
+    expect(result[0]).toHaveProperty("unique_users");
+    expect(result[0]).toHaveProperty("location");
+  });
+
+  test("comp: count() by multiple fields", () => {
+    const query =
+      "dataset = signInLogs | comp count() as events by location, username";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData(),
+    );
+    expect(result.length).toBeGreaterThan(2);
+    expect(result[0]).toHaveProperty("location");
+    expect(result[0]).toHaveProperty("username");
+    expect(result[0]).toHaveProperty("events");
+  });
+
+  test("comp: multiple functions by multiple fields", () => {
+    const query =
+      "dataset = signInLogs | comp count() as events, count_distinct(device) as unique_devices by location, username";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      DeviceTestData.getData(),
+    );
+    expect(result.length).toBeGreaterThan(2);
+    expect(result[0]).toHaveProperty("location");
+    expect(result[0]).toHaveProperty("username");
+    expect(result[0]).toHaveProperty("events");
+    expect(result[0]).toHaveProperty("unique_devices");
+  });
+
+  test("comp: max/min with grouping", () => {
+    const query =
+      "dataset = sales_invoices | comp max(amount) as max_amount, min(amount) as min_amount by customer";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      CustomerTestData.getData(),
+    );
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0]).toHaveProperty("max_amount");
+    expect(result[0]).toHaveProperty("min_amount");
+    expect(result[0]).toHaveProperty("customer");
+  });
+
+  test("comp: avg and sum with multiple grouping", () => {
+    const query =
+      "dataset = sales_invoices | comp avg(amount) as avg_amount, sum(amount) as total_amount by paid, canceled";
+    const parsedQuery = QueryParser.parseQuery(query);
+    const result = QueryExecutor.executeQuery(
+      parsedQuery,
+      CustomerTestData.getData(),
+    );
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0]).toHaveProperty("avg_amount");
+    expect(result[0]).toHaveProperty("total_amount");
+    expect(result[0]).toHaveProperty("paid");
+    expect(result[0]).toHaveProperty("canceled");
   });
 });
