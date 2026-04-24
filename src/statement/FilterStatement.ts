@@ -16,7 +16,7 @@ export class FilterStatement extends AbstractStatement {
     const { caseSensitive } = new ConfigStatement().execute(
       query,
       statement,
-      data
+      data,
     );
 
     data = data.filter((row) => {
@@ -105,12 +105,12 @@ export class FilterStatement extends AbstractStatement {
                 break;
               case "m":
                 relativeDate.setMinutes(
-                  relativeDate.getMinutes() + sign * dateVal
+                  relativeDate.getMinutes() + sign * dateVal,
                 );
                 break;
               case "s":
                 relativeDate.setSeconds(
-                  relativeDate.getSeconds() + sign * dateVal
+                  relativeDate.getSeconds() + sign * dateVal,
                 );
                 break;
               default:
@@ -266,14 +266,50 @@ export class FilterStatement extends AbstractStatement {
     query.statements.push({ type: "filter", filter: parsedFilter });
   }
 
+  private splitOutsideQuotes(str: string, delimiter: string): string[] {
+    const result: string[] = [];
+    let current = "";
+    let inQuote = false;
+    let quoteChar = "";
+    let i = 0;
+
+    while (i < str.length) {
+      const char = str[i];
+      if (inQuote) {
+        if (char === quoteChar) {
+          inQuote = false;
+        }
+        current += char;
+        i++;
+      } else if (char === '"' || char === "'") {
+        inQuote = true;
+        quoteChar = char;
+        current += char;
+        i++;
+      } else if (str.startsWith(delimiter, i)) {
+        result.push(current);
+        current = "";
+        i += delimiter.length;
+      } else {
+        current += char;
+        i++;
+      }
+    }
+
+    result.push(current);
+    return result;
+  }
+
   parseFilter(filter: string): QueryFilter {
-    const blocks = filter.split(" or ").map((s) => s.trim());
+    const blocks = this.splitOutsideQuotes(filter, " or ").map((s) => s.trim());
     const filters = blocks.map((b) => this.parseFilterBlock(b));
     return { blocks: filters };
   }
 
   parseFilterBlock(block: string): QueryFilterBlock {
-    const expressions = block.split(" and ").map((s) => s.trim());
+    const expressions = this.splitOutsideQuotes(block, " and ").map((s) =>
+      s.trim(),
+    );
     const filters = expressions.map((e) => this.parseFilterExpression(e));
     return { expressions: filters };
   }
@@ -301,13 +337,13 @@ export class FilterStatement extends AbstractStatement {
     const operatorsRegexParts = operators
       .map((op: string) =>
         // Escape special regex characters and sort by length to prioritize matching longer operators first
-        op.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")
+        op.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"),
       )
       .sort((a: string, b: string) => b.length - a.length);
 
     // Combine them into a single regex, capturing the operator and the surrounding text
     const regex = new RegExp(
-      `(.+?)\\s*(${operatorsRegexParts.join("|")})\\s*(.+)`
+      `(.+?)\\s*(${operatorsRegexParts.join("|")})\\s*(.+)`,
     );
 
     // Apply the regex to extract the field, operator, and value
@@ -407,7 +443,7 @@ export class FilterStatement extends AbstractStatement {
 
   parseFilterValue(value: string): string | boolean | number | Date {
     const v4 = new RegExp(
-      /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
+      /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i,
     );
     if (value.toString().match(v4)) {
       return value.toString();
@@ -434,9 +470,9 @@ export class FilterStatement extends AbstractStatement {
     }
 
     parsedValue = parsedValue.substring(1, parsedValue.length - 1);
-    const parsedList = parsedValue
-      .split(",")
-      .map((v) => v.trim().replace(/^['"](.*)['"]$/, "$1"));
+    const parsedList = this.splitOutsideQuotes(parsedValue, ",").map((v) =>
+      v.trim().replace(/^['"](.*)['"]$/, "$1"),
+    );
 
     return parsedList;
   }

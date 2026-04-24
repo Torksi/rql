@@ -303,6 +303,10 @@ dataset = users
 
 # Changelog
 
+## 4.2.1 (2026-04-24)
+
+- Fixed bug with `filter` statement parsing values containing "and" or "or" as logical operators instead of part of the value
+
 ## 4.2.0 (2026-03-22)
 
 - Added function style syntax for `comp` statement, while keeping the old syntax for backward compatibility.
